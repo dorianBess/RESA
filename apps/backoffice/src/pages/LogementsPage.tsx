@@ -1,18 +1,27 @@
 import { Alert, Grid, Stack, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { BlockedPeriodForm } from '../components/BlockedPeriodForm';
+import { BlockedPeriodsTable } from '../components/BlockedPeriodsTable';
 import { LogementForm } from '../components/LogementForm';
 import { SectionCard } from '../components/SectionCard';
-import type { Logement, NewLogement } from '../types';
+import type { BlockedPeriod, Logement, NewBlockedPeriod, NewLogement } from '../types';
 
 type LogementsPageProps = {
   logements: Logement[];
+  blockedPeriods: BlockedPeriod[];
   onCreate: (payload: NewLogement) => Promise<void>;
+  onCreateBlockedPeriod: (payload: NewBlockedPeriod) => Promise<void>;
 };
 
-export function LogementsPage({ logements, onCreate }: LogementsPageProps) {
+export function LogementsPage({
+  logements,
+  blockedPeriods,
+  onCreate,
+  onCreateBlockedPeriod,
+}: LogementsPageProps) {
   return (
     <Stack spacing={3}>
       <Alert severity="info">
-        MVP centré sur la création de logement, le tarif de base et la consultation rapide.
+        MVP centré sur la création de logement, le tarif de base et le blocage manuel des dates.
       </Alert>
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 5 }}>
@@ -44,6 +53,16 @@ export function LogementsPage({ logements, onCreate }: LogementsPageProps) {
                 ))}
               </TableBody>
             </Table>
+          </SectionCard>
+        </Grid>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <SectionCard title="Bloquer une période">
+            <BlockedPeriodForm logements={logements} onSubmit={onCreateBlockedPeriod} />
+          </SectionCard>
+        </Grid>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <SectionCard title="Périodes bloquées">
+            <BlockedPeriodsTable periods={blockedPeriods} />
           </SectionCard>
         </Grid>
       </Grid>

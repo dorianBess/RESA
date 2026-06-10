@@ -7,11 +7,24 @@ import { LogementsPage } from './pages/LogementsPage';
 import { ReservationsPage } from './pages/ReservationsPage';
 import { WidgetPage } from './pages/WidgetPage';
 import { login } from './services/auth';
-import { createLogement, fetchLogements } from './services/logements';
+import {
+  createBlockedPeriod,
+  createLogement,
+  fetchBlockedPeriods,
+  fetchLogements,
+} from './services/logements';
 import { fetchReservations } from './services/reservations';
 import { buildWidgetEmbedCode, fetchWidgetSettings } from './services/widget';
 import { backofficeTheme } from './theme/theme';
-import type { Logement, NewLogement, Reservation, UserSession, WidgetSettings } from './types';
+import type {
+  BlockedPeriod,
+  Logement,
+  NewBlockedPeriod,
+  NewLogement,
+  Reservation,
+  UserSession,
+  WidgetSettings,
+} from './types';
 
 type SectionKey = 'dashboard' | 'logements' | 'reservations' | 'widget';
 
@@ -19,11 +32,13 @@ export default function App() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [activeSection, setActiveSection] = useState<SectionKey>('dashboard');
   const [logements, setLogements] = useState<Logement[]>([]);
+  const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings | null>(null);
 
   useEffect(() => {
     fetchLogements().then(setLogements);
+    fetchBlockedPeriods().then(setBlockedPeriods);
     fetchReservations().then(setReservations);
     fetchWidgetSettings().then(setWidgetSettings);
   }, []);
@@ -38,6 +53,11 @@ export default function App() {
     setLogements((current) => [nextLogement, ...current]);
   };
 
+  const handleCreateBlockedPeriod = async (payload: NewBlockedPeriod) => {
+    const nextBlockedPeriod = await createBlockedPeriod(payload);
+    setBlockedPeriods((current) => [nextBlockedPeriod, ...current]);
+  };
+
   const content = useMemo(() => {
     if (!session || !widgetSettings) {
       return null;
@@ -45,7 +65,14 @@ export default function App() {
 
     switch (activeSection) {
       case 'logements':
-        return <LogementsPage logements={logements} onCreate={handleCreateLogement} />;
+        return (
+          <LogementsPage
+            logements={logements}
+            blockedPeriods={blockedPeriods}
+            onCreate={handleCreateLogement}
+            onCreateBlockedPeriod={handleCreateBlockedPeriod}
+          />
+        );
       case 'reservations':
         return <ReservationsPage reservations={reservations} />;
       case 'widget':

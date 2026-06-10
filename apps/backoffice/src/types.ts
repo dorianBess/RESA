@@ -37,3 +37,19 @@ export type NewLogement = {
   statut: string;
   tarifParNuit: number;
 };
+
+export type BlockedPeriod = {
+  id: string;
+  logementId: string;
+  logementNom: string;
+  dateDebut: string;
+  dateFin: string;
+  motif: string;
+};
+
+export type NewBlockedPeriod = {
+  logementId: string;
+  dateDebut: string;
+  dateFin: string;
+  motif: string;
+};

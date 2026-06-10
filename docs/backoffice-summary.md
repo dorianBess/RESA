@@ -10,6 +10,7 @@ Le périmètre couvert est :
 - connexion
 - vue dashboard
 - création et liste des logements
+- blocage manuel d'une période pour un logement
 - consultation des réservations
 - récupération du code d'intégration du widget
 
@@ -32,6 +33,8 @@ Le périmètre couvert est :
   - indicateurs rapides
 - `src/pages/LogementsPage.tsx`
   - formulaire de création et liste des logements
+  - formulaire de blocage de période
+  - liste des périodes bloquées
 - `src/pages/ReservationsPage.tsx`
   - tableau des réservations
 - `src/pages/WidgetPage.tsx`
@@ -46,6 +49,10 @@ Le périmètre couvert est :
   - conteneur de section réutilisable
 - `LogementForm`
   - saisie minimale d'un logement
+- `BlockedPeriodForm`
+  - sélection d'un logement, d'une période et d'un motif
+- `BlockedPeriodsTable`
+  - affichage des périodes bloquées
 - `ReservationTable`
   - tableau des réservations
 - `WidgetCodeBox`
