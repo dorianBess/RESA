@@ -53,4 +53,14 @@ describe('ArchiverLogementUseCase', () => {
       new ConflictException("Impossible d'archiver un logement avec des réservations à venir"),
     );
   });
+
+  // TEST-LOGEMENT-09 — Logement introuvable
+  it('TEST-LOGEMENT-09: lève NotFoundException si logement introuvable', async () => {
+    mockRepo.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute('uuid-inexistant', 'tenant-A')).rejects.toThrow(
+      new NotFoundException('Logement introuvable'),
+    );
+    expect(mockRepo.hasReservationsFutures).not.toHaveBeenCalled();
+  });
 });

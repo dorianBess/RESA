@@ -121,4 +121,38 @@ describe('VerifierDisponibiliteCompletUseCase', () => {
       useCase.execute({ ...baseCmd, dateDebut: new Date('2025-07-17'), dateFin: new Date('2025-07-10') }),
     ).rejects.toThrow(new BadRequestException('La date de fin doit être postérieure à la date de début'));
   });
+
+  // TEST-DISPO-07 — Logement introuvable
+  it('TEST-DISPO-07: lève ConflictException "Logement introuvable"', async () => {
+    mockLogement.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute(baseCmd)).rejects.toThrow(
+      new ConflictException('Logement introuvable'),
+    );
+  });
+
+  // TEST-DISPO-08 — Aucun tarif configuré → prix 0
+  it('TEST-DISPO-08: retourne montantTotal=0 si aucun tarif base ni saisonnier', async () => {
+    mockLogement.findById.mockResolvedValue(logement);
+    mockDispo.existsConflict.mockResolvedValue(false);
+    mockBlocage.existsConflict.mockResolvedValue(false);
+    mockTarif.findApplicable.mockResolvedValue(null);
+    mockTarif.findBase.mockResolvedValue(null);
+    mockAcompte.findByLogement.mockResolvedValue(null);
+
+    const result = await useCase.execute(baseCmd);
+
+    expect(result.montantTotal).toBe(0);
+    expect(result.disponible).toBe(true);
+  });
+
+  // TEST-DISPO-09 — Acompte actif
+  it('TEST-DISPO-09: calcule montantAcompte quand acompte actif à 30%', async () => {
+    setupDisponible(120, { actif: true, pourcentage: 30 });
+
+    const result = await useCase.execute(baseCmd);
+
+    expect(result.acompteActif).toBe(true);
+    expect(result.montantAcompte).toBe(252); // 840 * 30 / 100
+  });
 });

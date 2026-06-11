@@ -30,7 +30,7 @@ describe('ConfigurerIcalUseCase', () => {
     );
   });
 
-  // TEST-ICAL-02 — URL invalide
+  // TEST-ICAL-02 — URL Airbnb invalide
   it("TEST-ICAL-02: lève BadRequestException \"Format d'URL invalide\"", async () => {
     await expect(
       useCase.execute({
@@ -38,5 +38,32 @@ describe('ConfigurerIcalUseCase', () => {
         urlIcalAirbnb: 'pas-une-url',
       }),
     ).rejects.toThrow(new BadRequestException("Format d'URL invalide"));
+  });
+
+  // TEST-ICAL-02B — URL Booking invalide
+  it("TEST-ICAL-02B: lève BadRequestException pour URL Booking invalide", async () => {
+    await expect(
+      useCase.execute({
+        logementId: 'log-uuid', tenantId: 'tenant-A',
+        urlIcalBooking: 'pas-une-url',
+      }),
+    ).rejects.toThrow(new BadRequestException("Format d'URL invalide"));
+  });
+
+  // TEST-ICAL-01B — Configuration URL iCal Booking valide
+  it('TEST-ICAL-01B: enregistre URL iCal Booking valide', async () => {
+    mockRepo.saveUrls.mockResolvedValue();
+
+    await expect(
+      useCase.execute({
+        logementId: 'log-uuid', tenantId: 'tenant-A',
+        urlIcalBooking: 'https://booking.com/ical/xxx.ics',
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(mockRepo.saveUrls).toHaveBeenCalledWith(
+      'log-uuid', 'tenant-A',
+      expect.objectContaining({ urlIcalBooking: 'https://booking.com/ical/xxx.ics' }),
+    );
   });
 });

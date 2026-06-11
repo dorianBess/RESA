@@ -84,4 +84,34 @@ describe('SynchroniserIcalUseCase', () => {
     expect(result.blocagesCrees).toBe(0);
     expect(mockBlocage.create).not.toHaveBeenCalled();
   });
+
+  // TEST-ICAL-06 — Aucune URL configurée
+  it('TEST-ICAL-06: retourne 0 blocage si aucune URL iCal configurée', async () => {
+    mockIcalRepo.getUrls.mockResolvedValue(null);
+
+    const result = await useCase.execute('log-uuid', 'tenant-A', 'test@gite.fr', 'Gîte');
+
+    expect(result.blocagesCrees).toBe(0);
+    expect(result.conflitsDetectes).toBe(0);
+    expect(mockFetcher.fetch).not.toHaveBeenCalled();
+  });
+
+  // TEST-ICAL-07 — Synchronisation source Booking
+  it('TEST-ICAL-07: crée 1 blocage source BOOKING depuis URL Booking', async () => {
+    mockIcalRepo.getUrls.mockResolvedValue({ urlIcalBooking: 'https://booking.com/ical/xxx.ics' });
+    mockFetcher.fetch.mockResolvedValue([event1]);
+    mockBlocage.findByDateRange.mockResolvedValue([]);
+    mockDispo.existsConflict.mockResolvedValue(false);
+    mockBlocage.create.mockResolvedValue({
+      id: 'b-uuid', logementId: 'log-uuid', tenantId: 'tenant-A',
+      dateDebut: event1.dateDebut, dateFin: event1.dateFin, source: SourceBlocage.BOOKING,
+    });
+
+    const result = await useCase.execute('log-uuid', 'tenant-A', 'test@gite.fr', 'Gîte');
+
+    expect(result.blocagesCrees).toBe(1);
+    expect(mockBlocage.create).toHaveBeenCalledWith(
+      expect.objectContaining({ source: SourceBlocage.BOOKING }),
+    );
+  });
 });
