@@ -6,22 +6,38 @@ type LoginResponse = {
   expiresAt: string;
 };
 
-export async function login(email: string, password: string): Promise<UserSession> {
-  if (!email || !password) {
-    throw new Error('Email et mot de passe requis.');
-  }
+const SESSION_KEY = 'resa_session';
 
-  const response = await apiPost<LoginResponse>('/auth/login', {
-    email,
-    motDePasse: password,
+export async function login(email: string, password: string): Promise<UserSession> {
+  const res = await fetch('/api/v1/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, motDePasse: password }),
   });
 
-  setAuthToken(response.accessToken);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? 'Identifiants incorrects.');
+  }
 
-  return {
-    email,
-    tenantName: 'Résa Demo Hébergeur',
-  };
+  const data: { accessToken: string } = await res.json();
+  const session: UserSession = { email, tenantName: email, accessToken: data.accessToken };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  return session;
+}
+
+export function logout(): void {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+export function getStoredSession(): UserSession | null {
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as UserSession;
+  } catch {
+    return null;
+  }
 }
 
 export function logout(): void {

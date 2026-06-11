@@ -6,7 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { LogementsPage } from './pages/LogementsPage';
 import { ReservationsPage } from './pages/ReservationsPage';
 import { WidgetPage } from './pages/WidgetPage';
-import { login, logout } from './services/auth';
+import { getStoredSession, login, logout } from './services/auth';
 import { createLogement, fetchLogements } from './services/logements';
 import { fetchReservations } from './services/reservations';
 import { buildWidgetEmbedCode, fetchWidgetSettings } from './services/widget';
@@ -16,7 +16,7 @@ import type { Logement, NewLogement, Reservation, UserSession, WidgetSettings } 
 type SectionKey = 'dashboard' | 'logements' | 'reservations' | 'widget';
 
 export default function App() {
-  const [session, setSession] = useState<UserSession | null>(null);
+  const [session, setSession] = useState<UserSession | null>(getStoredSession);
   const [activeSection, setActiveSection] = useState<SectionKey>('dashboard');
   const [logements, setLogements] = useState<Logement[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -76,10 +76,7 @@ export default function App() {
         <AppShell
           activeSection={activeSection}
           onNavigate={setActiveSection}
-          onLogout={() => {
-            logout();
-            setSession(null);
-          }}
+          onLogout={() => { logout(); setSession(null); }}
           session={session}
         >
           {content}

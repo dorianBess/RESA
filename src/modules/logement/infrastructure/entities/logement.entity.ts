@@ -21,10 +21,10 @@ export class LogementEntity {
   @Column({ type: 'enum', enum: StatutLogement, default: StatutLogement.ACTIF })
   statut: StatutLogement;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   urlIcalAirbnb: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   urlIcalBooking: string | null;
 
   @CreateDateColumn()

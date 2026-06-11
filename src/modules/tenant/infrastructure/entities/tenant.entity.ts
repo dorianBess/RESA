@@ -36,7 +36,7 @@ export class TenantEntity {
   @Column({ type: 'timestamp', nullable: true })
   abonnementFin: Date | null;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   tokenPublicWidget: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
