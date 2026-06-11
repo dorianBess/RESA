@@ -52,6 +52,7 @@ export default function App() {
         sx={{
           minHeight: '100vh',
           p: { xs: 2, md: 4 },
+          color: '#102a43',
           background:
             'radial-gradient(ellipse at top left, rgba(27,73,101,0.1) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(27,73,101,0.06) 0%, transparent 50%), linear-gradient(180deg, #f0f4f8 0%, #e8eff5 100%)',
         }}

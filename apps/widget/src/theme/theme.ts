@@ -44,6 +44,47 @@ export function buildWidgetTheme(config?: WidgetConfig) {
           },
         },
       },
+      MuiCardContent: {
+        styleOverrides: {
+          root: { color: '#102a43' },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: { color: '#102a43' },
+        },
+      },
+      MuiInputBase: {
+        styleOverrides: {
+          input: { color: '#102a43' },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: { color: '#4a5568' },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          root: { color: 'inherit' },
+        },
+      },
+      MuiStepLabel: {
+        styleOverrides: {
+          label: { color: '#4a5568' },
+          active: { color: '#102a43 !important' },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: { color: '#102a43' },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          message: { color: '#102a43' },
+        },
+      },
     },
   });
 }
