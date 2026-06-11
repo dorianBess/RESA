@@ -34,3 +34,7 @@ Thumbs.db
 
 # TypeORM migrations générées
 src/migrations/*.js
+API_ROUTES.md
+API_TESTS.md
+ARCHITECTURE.md
+CONTEXT.md

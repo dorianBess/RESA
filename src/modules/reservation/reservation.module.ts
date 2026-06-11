@@ -1,19 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// Entité
 import { ReservationEntity } from './infrastructure/entities/reservation.entity';
 import { ReservationHoldEntity } from './infrastructure/entities/reservation-hold.entity';
-
-// Port entrant (controller)
 import { ReservationController } from './infrastructure/controllers/reservation.controller';
-
-// Port sortant (repository)
 import { ReservationRepository } from './infrastructure/repositories/reservation.repository';
+import { StripeService } from './infrastructure/services/stripe.service';
 import { RESERVATION_REPOSITORY } from './domain/ports/reservation.repository.port';
-
-// Cas d'usage (domaine métier)
+import { STRIPE_SERVICE } from './domain/ports/stripe.service.port';
 import { CreerReservationUseCase } from './application/use-cases/creer-reservation.use-case';
+import { AnnulerReservationUseCase } from './application/use-cases/annuler-reservation.use-case';
 import { VerifierDisponibiliteUseCase } from './application/use-cases/verifier-disponibilite.use-case';
 import { CalculerPrixUseCase } from './application/use-cases/calculer-prix.use-case';
 
@@ -21,26 +17,21 @@ import { CalculerPrixUseCase } from './application/use-cases/calculer-prix.use-c
   imports: [
     TypeOrmModule.forFeature([ReservationEntity, ReservationHoldEntity]),
   ],
-  controllers: [
-    // Port entrant REST
-    ReservationController,
-  ],
+  controllers: [ReservationController],
   providers: [
-    // Cas d'usage — logique métier pure
     CreerReservationUseCase,
+    AnnulerReservationUseCase,
     VerifierDisponibiliteUseCase,
     CalculerPrixUseCase,
-
-    // Binding port sortant → implémentation infrastructure
-    {
-      provide: RESERVATION_REPOSITORY,
-      useClass: ReservationRepository,
-    },
+    { provide: RESERVATION_REPOSITORY, useClass: ReservationRepository },
+    { provide: STRIPE_SERVICE, useClass: StripeService },
   ],
   exports: [
     CreerReservationUseCase,
+    AnnulerReservationUseCase,
     VerifierDisponibiliteUseCase,
     CalculerPrixUseCase,
+    RESERVATION_REPOSITORY,
   ],
 })
 export class ReservationModule {}
