@@ -1,34 +1,59 @@
 import type { Logement, NewLogement } from '../types';
+import { apiGet, apiPost, apiPut } from './api';
 
-const logements: Logement[] = [
-  {
-    id: 'log-1',
-    nom: 'La Maison des Pins',
-    ville: 'Biarritz',
-    capacite: 4,
-    statut: 'ACTIF',
-    tarifParNuit: 120,
-  },
-  {
-    id: 'log-2',
-    nom: 'L Atelier du Port',
-    ville: 'La Rochelle',
-    capacite: 2,
-    statut: 'ACTIF',
-    tarifParNuit: 95,
-  },
-];
+type LogementApi = {
+  id: string;
+  nom: string;
+  description?: string;
+  capacite: number;
+  statut: string;
+};
+
+type LogementListResponse = {
+  data: LogementApi[];
+  total: number;
+};
+
+type TarifResponse = {
+  tarifBase: { prixParNuit: number } | null;
+  tarifsSaisonniers: unknown[];
+};
 
 export async function fetchLogements(): Promise<Logement[]> {
-  return [...logements];
+  const response = await apiGet<LogementListResponse>('/logements');
+
+  return Promise.all(
+    response.data.map(async (item) => {
+      const tarifs = await apiGet<TarifResponse>(`/logements/${item.id}/tarifs`);
+      return {
+        id: item.id,
+        nom: item.nom,
+        ville: item.description ?? '',
+        capacite: item.capacite,
+        statut: item.statut,
+        tarifParNuit: tarifs.tarifBase?.prixParNuit ?? 0,
+      };
+    }),
+  );
 }
 
 export async function createLogement(payload: NewLogement): Promise<Logement> {
-  const logement: Logement = {
-    id: `log-${Date.now()}`,
-    ...payload,
-  };
+  const result = await apiPost<LogementApi>('/logements', {
+    nom: payload.nom,
+    capacite: payload.capacite,
+    description: payload.ville,
+  });
 
-  logements.unshift(logement);
-  return logement;
+  await apiPut(`/logements/${result.id}/tarifs/base`, {
+    prixParNuit: payload.tarifParNuit,
+  });
+
+  return {
+    id: result.id,
+    nom: result.nom,
+    ville: payload.ville,
+    capacite: result.capacite,
+    statut: result.statut,
+    tarifParNuit: payload.tarifParNuit,
+  };
 }

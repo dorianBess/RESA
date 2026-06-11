@@ -6,7 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { LogementsPage } from './pages/LogementsPage';
 import { ReservationsPage } from './pages/ReservationsPage';
 import { WidgetPage } from './pages/WidgetPage';
-import { login } from './services/auth';
+import { login, logout } from './services/auth';
 import { createLogement, fetchLogements } from './services/logements';
 import { fetchReservations } from './services/reservations';
 import { buildWidgetEmbedCode, fetchWidgetSettings } from './services/widget';
@@ -76,7 +76,10 @@ export default function App() {
         <AppShell
           activeSection={activeSection}
           onNavigate={setActiveSection}
-          onLogout={() => setSession(null)}
+          onLogout={() => {
+            logout();
+            setSession(null);
+          }}
           session={session}
         >
           {content}
