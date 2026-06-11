@@ -25,7 +25,9 @@ export class ReservationRepository implements IReservationRepository {
   }
 
   async findByLogement(logementId: string, tenantId: string): Promise<ReservationDomain[]> {
-    return (await this.repo.find({ where: { logementId, tenantId } })).map(this.toDomain);
+    const where: Record<string, string> = { tenantId };
+    if (logementId) where.logementId = logementId;
+    return (await this.repo.find({ where })).map(this.toDomain);
   }
 
   async existsConflict(logementId: string, debut: Date, fin: Date, excludeId?: string): Promise<boolean> {

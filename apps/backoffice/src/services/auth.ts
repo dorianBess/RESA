@@ -28,6 +28,7 @@ export async function login(email: string, password: string): Promise<UserSessio
 
 export function logout(): void {
   localStorage.removeItem(SESSION_KEY);
+  clearAuthToken();
 }
 
 export function getStoredSession(): UserSession | null {
@@ -38,8 +39,4 @@ export function getStoredSession(): UserSession | null {
   } catch {
     return null;
   }
-}
-
-export function logout(): void {
-  clearAuthToken();
 }
