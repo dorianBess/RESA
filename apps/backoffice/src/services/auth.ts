@@ -9,18 +9,12 @@ type LoginResponse = {
 const SESSION_KEY = 'resa_session';
 
 export async function login(email: string, password: string): Promise<UserSession> {
-  const res = await fetch('/api/v1/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, motDePasse: password }),
+  const data = await apiPost<{ accessToken: string }>('/auth/login', {
+    email,
+    motDePasse: password,
   });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message ?? 'Identifiants incorrects.');
-  }
-
-  const data: { accessToken: string } = await res.json();
+  setAuthToken(data.accessToken);
   const session: UserSession = { email, tenantName: email, accessToken: data.accessToken };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   return session;
@@ -35,7 +29,9 @@ export function getStoredSession(): UserSession | null {
   const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as UserSession;
+    const session = JSON.parse(raw) as UserSession;
+    if (session.accessToken) setAuthToken(session.accessToken);
+    return session;
   } catch {
     return null;
   }
