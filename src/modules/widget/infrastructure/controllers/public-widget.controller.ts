@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Param, Post, Query, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan, MoreThan } from 'typeorm';
 import { Inject } from '@nestjs/common';
 import { TenantEntity } from '@modules/tenant/infrastructure/entities/tenant.entity';
 import { LogementEntity } from '@modules/logement/infrastructure/entities/logement.entity';
 import { TarifBaseEntity } from '@modules/logement/infrastructure/entities/tarif-base.entity';
+import { BlocageDatesEntity } from '@modules/logement/infrastructure/entities/blocage-dates.entity';
 import { StatutLogement } from '@modules/logement/domain/ports/logement.repository.port';
 import { CreerReservationUseCase } from '@modules/reservation/application/use-cases/creer-reservation.use-case';
 import { IReservationRepository, RESERVATION_REPOSITORY } from '@modules/reservation/domain/ports/reservation.repository.port';
@@ -18,6 +19,8 @@ export class PublicWidgetController {
     private readonly logementRepo: Repository<LogementEntity>,
     @InjectRepository(TarifBaseEntity)
     private readonly tarifRepo: Repository<TarifBaseEntity>,
+    @InjectRepository(BlocageDatesEntity)
+    private readonly blocageRepo: Repository<BlocageDatesEntity>,
     private readonly creerReservation: CreerReservationUseCase,
     @Inject(RESERVATION_REPOSITORY)
     private readonly reservationRepo: IReservationRepository,
@@ -89,16 +92,29 @@ export class PublicWidgetController {
     const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
-    const conflict = await this.reservationRepo.existsConflict(
-      logementId, new Date(dateDebut), new Date(dateFin),
-    );
-    const holdActif = await this.reservationRepo.existsActiveHold(
-      logementId, new Date(dateDebut), new Date(dateFin),
-    );
+    const debut = new Date(dateDebut);
+    const fin = new Date(dateFin);
+
+    const conflict = await this.reservationRepo.existsConflict(logementId, debut, fin);
+    const holdActif = await this.reservationRepo.existsActiveHold(logementId, debut, fin);
 
     if (conflict || holdActif) {
       return { disponible: false, motif: 'Ces dates ne sont plus disponibles.' };
     }
+
+    // Vérification des blocages manuels
+    const blocageConflict = await this.blocageRepo
+      .createQueryBuilder('b')
+      .where('b.logementId = :logementId', { logementId })
+      .andWhere('b.tenantId = :tenantId', { tenantId: tenant.id })
+      .andWhere('b.dateDebut < :fin', { fin: dateFin })
+      .andWhere('b.dateFin > :debut', { debut: dateDebut })
+      .getCount();
+
+    if (blocageConflict > 0) {
+      return { disponible: false, motif: 'Ces dates sont bloquées par l\'hébergeur.' };
+    }
+
     return { disponible: true };
   }
 
@@ -111,17 +127,21 @@ export class PublicWidgetController {
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
     const reservations = await this.reservationRepo.findByLogement(logementId, tenant.id);
+    const blocages = await this.blocageRepo.find({ where: { logementId, tenantId: tenant.id } });
 
-    return reservations
+    const toDateStr = (d: Date | string) =>
+      d instanceof Date ? d.toISOString().substring(0, 10) : String(d).substring(0, 10);
+
+    const fromReservations = reservations
       .filter((r) => r.statut !== 'ANNULEE' && r.statut !== 'REMBOURSEE')
-      .map((r) => ({
-        start: r.dateDebut instanceof Date
-          ? r.dateDebut.toISOString().substring(0, 10)
-          : String(r.dateDebut).substring(0, 10),
-        end: r.dateFin instanceof Date
-          ? r.dateFin.toISOString().substring(0, 10)
-          : String(r.dateFin).substring(0, 10),
-      }));
+      .map((r) => ({ start: toDateStr(r.dateDebut), end: toDateStr(r.dateFin) }));
+
+    const fromBlocages = blocages.map((b) => ({
+      start: toDateStr(b.dateDebut),
+      end: toDateStr(b.dateFin),
+    }));
+
+    return [...fromReservations, ...fromBlocages];
   }
 
   @Post(':token/reservations')

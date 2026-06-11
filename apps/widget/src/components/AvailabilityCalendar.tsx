@@ -1,7 +1,8 @@
 import dayjs, { type Dayjs } from 'dayjs';
 import 'dayjs/locale/fr';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider, PickersDay } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import type { PickersDayProps } from '@mui/x-date-pickers';
 import type { BlockedRange } from '../types';
 
 type AvailabilityCalendarProps = {
@@ -14,7 +15,40 @@ type AvailabilityCalendarProps = {
 
 function isDayBlocked(day: Dayjs, blockedRanges: BlockedRange[]): boolean {
   const d = day.format('YYYY-MM-DD');
-  return blockedRanges.some((r) => d >= r.start && d < r.end);
+  return blockedRanges.some((r) => {
+    const start = r.start.substring(0, 10);
+    const end = r.end.substring(0, 10);
+    return d >= start && d < end;
+  });
+}
+
+function BlockedDay(props: PickersDayProps & { blockedRanges: BlockedRange[] }) {
+  const { blockedRanges, day, ...rest } = props;
+  const blocked = isDayBlocked(day, blockedRanges);
+
+  return (
+    <PickersDay
+      {...rest}
+      day={day}
+      disabled={blocked || rest.disabled}
+      sx={
+        blocked
+          ? {
+              bgcolor: '#f1f5f9 !important',
+              color: '#94a3b8 !important',
+              textDecoration: 'line-through',
+              opacity: '1 !important',
+              '&:hover': { bgcolor: '#f1f5f9 !important' },
+              '&.Mui-disabled': {
+                bgcolor: '#f1f5f9 !important',
+                color: '#94a3b8 !important',
+                opacity: '1 !important',
+              },
+            }
+          : undefined
+      }
+    />
+  );
 }
 
 export function AvailabilityCalendar({
@@ -32,22 +66,10 @@ export function AvailabilityCalendar({
         onChange={onChange}
         minDate={minDate ?? dayjs()}
         shouldDisableDate={(day) => isDayBlocked(day, blockedRanges)}
+        slots={{ day: BlockedDay }}
         slotProps={{
-          textField: {
-            fullWidth: true,
-            size: 'medium',
-          },
-          day: (ownerState) =>
-            isDayBlocked(ownerState.day, blockedRanges)
-              ? {
-                  sx: {
-                    textDecoration: 'line-through',
-                    color: 'text.disabled',
-                    bgcolor: 'action.disabledBackground',
-                    '&:hover': { bgcolor: 'action.disabledBackground' },
-                  },
-                }
-              : {},
+          textField: { fullWidth: true },
+          day: { blockedRanges } as any,
         }}
       />
     </LocalizationProvider>

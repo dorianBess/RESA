@@ -1,5 +1,5 @@
-import type { Logement, NewLogement } from '../types';
-import { apiGet, apiPost, apiPut } from './api';
+import type { Blocage, Logement, NewLogement } from '../types';
+import { apiDelete, apiGet, apiPost, apiPut } from './api';
 
 type LogementApi = {
   id: string;
@@ -35,6 +35,21 @@ export async function fetchLogements(): Promise<Logement[]> {
       };
     }),
   );
+}
+
+export async function fetchBlocages(logementId: string): Promise<Blocage[]> {
+  return apiGet<Blocage[]>(`/logements/${logementId}/blocages`);
+}
+
+export async function createBlocage(
+  logementId: string,
+  payload: { dateDebut: string; dateFin: string; motif?: string },
+): Promise<Blocage> {
+  return apiPost<Blocage>(`/logements/${logementId}/blocages`, payload);
+}
+
+export async function deleteBlocage(logementId: string, blocageId: string): Promise<void> {
+  return apiDelete<void>(`/logements/${logementId}/blocages/${blocageId}`);
 }
 
 export async function createLogement(payload: NewLogement): Promise<Logement> {

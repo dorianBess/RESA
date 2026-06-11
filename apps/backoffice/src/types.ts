@@ -37,3 +37,12 @@ export type NewLogement = {
   statut: string;
   tarifParNuit: number;
 };
+
+export type Blocage = {
+  id: string;
+  logementId: string;
+  dateDebut: string;
+  dateFin: string;
+  motif: string | null;
+  source: string;
+};
