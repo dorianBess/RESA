@@ -1,6 +1,7 @@
 export type UserSession = {
   email: string;
   tenantName: string;
+  accessToken: string;
 };
 
 export type Logement = {
