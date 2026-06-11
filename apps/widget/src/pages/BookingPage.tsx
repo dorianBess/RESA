@@ -261,6 +261,9 @@ export function BookingPage({ config }: BookingPageProps) {
                 total={total}
               />
 
+              {/* Le montant estimé est affiché, mais le montant effectivement facturé
+                  ne peut pas encore être garanti ici tant que l'intégration Stripe
+                  n'est pas mise en place. */}
               <Alert severity="info">
                 Paiement non activé pour le moment. La demande est enregistrée sans règlement en ligne.
               </Alert>

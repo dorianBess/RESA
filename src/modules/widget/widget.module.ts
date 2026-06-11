@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TenantEntity } from '@modules/tenant/infrastructure/entities/tenant.entity';
 import { WidgetController } from './infrastructure/controllers/widget.controller';
+import { PublicWidgetController } from './infrastructure/controllers/public-widget.controller';
 import { WidgetRepository } from './infrastructure/repositories/widget.repository';
 import { WIDGET_REPOSITORY } from './domain/ports/widget.repository.port';
 import { ObtenirConfigWidgetUseCase } from './application/use-cases/obtenir-config-widget.use-case';
@@ -10,7 +11,7 @@ import { RegenerarTokenWidgetUseCase } from './application/use-cases/regenerer-t
 
 @Module({
   imports: [TypeOrmModule.forFeature([TenantEntity])],
-  controllers: [WidgetController],
+  controllers: [WidgetController, PublicWidgetController],
   providers: [
     ObtenirConfigWidgetUseCase,
     ModifierConfigWidgetUseCase,

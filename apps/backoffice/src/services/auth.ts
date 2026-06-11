@@ -1,4 +1,10 @@
 import type { UserSession } from '../types';
+import { apiPost, clearAuthToken, setAuthToken } from './api';
+
+type LoginResponse = {
+  accessToken: string;
+  expiresAt: string;
+};
 
 const SESSION_KEY = 'resa_session';
 
@@ -32,4 +38,8 @@ export function getStoredSession(): UserSession | null {
   } catch {
     return null;
   }
+}
+
+export function logout(): void {
+  clearAuthToken();
 }
