@@ -1,79 +1,142 @@
 # Résa — Plateforme SaaS de réservation de logements touristiques
 
-> Épreuve EC02-P1 — EADL RNCP39765 — Juin 2026
-
 ## Présentation
 
-Résa permet aux petites structures d'hébergement (gîtes, chambres d'hôtes, appartements) de proposer une réservation directe depuis leur site vitrine via un widget HTML intégrable en copier-coller.
+Résa est une plateforme SaaS multi-tenant qui permet aux hébergeurs (gîtes, chambres d'hôtes, appartements) de gérer leurs logements et de recevoir des réservations directement depuis leur site vitrine.
+
+Le projet se compose de trois applications :
+
+| Application    | Rôle                                           | Port par défaut |
+| -------------- | ---------------------------------------------- | --------------- |
+| **API NestJS** | Backend REST, logique métier, base de données  | `3001`          |
+| **Backoffice** | Interface d'administration pour les hébergeurs | `5173`          |
+| **Widget**     | Formulaire de réservation intégrable en iframe | `5174`          |
+
+Le parcours utilisateur final est : accéder au widget → choisir un logement → sélectionner des dates → soumettre une demande de réservation.
+
+---
 
 ## Architecture
 
-Pattern hexagonal (Ports & Adapters) — monolithe modulaire NestJS.
+Le backend suit le **pattern hexagonal (Ports & Adapters)** dans une architecture monolithe modulaire NestJS.
 
 ```
 src/
 ├── modules/
-│   ├── logement/           # Catalogue, planning, tarifs
+│   ├── auth/               # Authentification JWT
+│   ├── logement/           # Catalogue, planning, tarifs, blocages de dates
 │   ├── reservation/        # Réservations, disponibilités, ReservationHold
 │   ├── paiement/           # Stripe, acomptes, remboursements
-│   ├── widget/             # Génération et personnalisation du widget
+│   ├── widget/             # Configuration et endpoints publics du widget
+│   ├── tenant/             # Gestion des comptes hébergeurs (multi-tenant)
 │   ├── synchronisation/    # Worker iCal Airbnb/Booking
 │   └── notification/       # Emails transactionnels (AWS SES)
 └── shared/
-    ├── guards/             # JWT Guard, Tenant Guard
-    ├── decorators/         # @CurrentTenant, @WidgetToken
-    └── filters/            # Exception filters globaux
+    ├── guards/             # JwtAuthGuard, TenantGuard
+    └── decorators/         # @CurrentTenant, @WidgetToken
 ```
 
-Chaque module respecte la structure :
+Chaque module suit la même structure interne :
+
 ```
 module/
 ├── domain/
-│   └── ports/              # Interfaces (contrats) — jamais de dépendances infra
+│   └── ports/              # Interfaces (contrats) — aucune dépendance infrastructure
 ├── application/
-│   └── use-cases/          # Logique métier pure — testable sans base de données
+│   └── use-cases/          # Logique métier pure, testable sans base de données
 └── infrastructure/
-    ├── controllers/        # Port entrant REST
+    ├── controllers/        # Contrôleurs REST (ports entrants)
     ├── entities/           # Entités TypeORM
-    └── repositories/       # Port sortant — implémentation concrète
+    └── repositories/       # Implémentations des ports sortants
 ```
+
+Les deux frontends sont des applications **React + Vite + Material UI** dans `apps/` :
+
+```
+apps/
+├── backoffice/             # React 19, MUI 7, @mui/x-date-pickers
+└── widget/                 # React 19, MUI 7, @mui/x-date-pickers, dayjs
+```
+
+---
 
 ## Prérequis
 
-- Node.js >= 20
-- PostgreSQL >= 16
-- npm >= 10
+- **Node.js** >= 20
+- **npm** >= 10
+- **PostgreSQL** >= 16 (local ou Docker)
+
+---
 
 ## Installation
 
 ```bash
-# Cloner le dépôt
-git clone https://github.com/votre-org/resa.git
+# 1. Cloner le dépôt
+git clone https://github.com/dorianBess/resa.git
 cd resa
 
-# Installer les dépendances
+# 2. Installer les dépendances (backend + frontends)
 npm install
+cd apps/backoffice && npm install && cd ../..
+cd apps/widget && npm install && cd ../..
 
-# Copier et remplir les variables d'environnement
-cp .env.example .env
-# Éditer .env avec vos valeurs
+# 3. Configurer les variables d'environnement
+cp .env.example .env                                    # Backend
+cp apps/backoffice/.env.example apps/backoffice/.env    # Backoffice
+cp apps/widget/.env.example     apps/widget/.env        # Widget
+
+# Éditer .env avec vos valeurs (DATABASE_URL, JWT_SECRET, etc.)
 ```
 
-## Démarrage en développement
+> **Important — membres de l'équipe :** les fichiers `.env` ne sont pas versionnés.
+> Chaque développeur doit créer les siens depuis les `.env.example`.
+> Si vous n'êtes pas sur la même machine que le backend, remplacez `localhost`
+> par l'IP de la machine hôte (ex : `http://192.168.1.42:3001/api/v1`).
+
+---
+
+## Démarrage
+
+### Base de données (Docker)
 
 ```bash
-# Lancer PostgreSQL (Docker)
 docker run --name resa-db \
   -e POSTGRES_USER=resa \
   -e POSTGRES_PASSWORD=resa \
   -e POSTGRES_DB=resa_dev \
   -p 5432:5432 -d postgres:16
+```
 
-# Lancer l'API en mode watch
+### Backend (API NestJS)
+
+```bash
+# Depuis la racine du projet
 npm run start:dev
 ```
 
-L'API est disponible sur `http://localhost:3000/api/v1`.
+L'API démarre sur **`http://localhost:3001/api/v1`**.  
+Le schéma de base de données est synchronisé automatiquement au démarrage (`synchronize: true`).
+
+### Backoffice
+
+```bash
+cd apps/backoffice
+npm run dev
+```
+
+Accessible sur **`http://localhost:5173`**.
+
+### Widget
+
+```bash
+cd apps/widget
+npm run dev
+```
+
+Accessible sur **`http://localhost:5174?token=<tokenPublicWidget>`**.  
+Le token est disponible dans le backoffice, section **Widget**.
+
+---
 
 ## Tests
 
@@ -81,64 +144,14 @@ L'API est disponible sur `http://localhost:3000/api/v1`.
 # Tests unitaires
 npm run test
 
-# Tests unitaires avec couverture (cible : ≥ 80%)
+# Tests unitaires avec couverture
 npm run test:cov
-
-# Tests end-to-end
-npm run test:e2e
 
 # Mode watch
 npm run test:watch
+
+# Tests end-to-end
+npm run test:e2e
 ```
 
-### Stripe en développement local
-
-Les webhooks Stripe nécessitent une URL publique. Utiliser le Stripe CLI :
-
-```bash
-# Installer le Stripe CLI
-brew install stripe/stripe-cli/stripe  # macOS
-
-# Rediriger les webhooks vers l'API locale
-stripe listen --forward-to localhost:3000/api/v1/paiement/webhook
-```
-
-## CI/CD
-
-Le pipeline GitHub Actions (`.github/workflows/ci.yml`) s'exécute à chaque push sur `main` et `develop` et à chaque Pull Request :
-
-| Étape | Commande | Description |
-|---|---|---|
-| Lint | `npm run lint` | ESLint + Prettier |
-| Tests unitaires | `npm run test:cov` | Jest avec couverture ≥ 80% |
-| Tests E2E | `npm run test:e2e` | Tests d'intégration sur PostgreSQL |
-| Build | `npm run build` | Compilation TypeScript |
-
-## Conventions Git
-
-- **Branches** : `feature/nom`, `fix/nom`, `docs/nom`
-- **Commits** : format conventionnel — `feat:`, `fix:`, `docs:`, `chore:`, `test:`
-- **Pull Requests** : revue obligatoire par 1 autre membre avant merge sur `main`
-
-## Variables d'environnement
-
-Voir `.env.example` pour la liste complète. Les variables obligatoires sont :
-
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | URL de connexion PostgreSQL |
-| `JWT_SECRET` | Secret de signature des tokens JWT |
-| `STRIPE_SECRET_KEY` | Clé secrète Stripe |
-| `STRIPE_WEBHOOK_SECRET` | Secret de validation des webhooks Stripe |
-
-## Équipe
-
-| Membre | Rôle |
-|---|---|
-| Membre 1 | Chef de projet |
-| Membre 2 | Développeur back-end |
-| Membre 3 | Développeur front-end |
-
----
-
-*Projet réalisé dans le cadre de la certification EADL RNCP39765 — ESN81 — Juin 2026*
+Les tests couvrent principalement les use-cases métier (`src/modules/*/application/use-cases/*.spec.ts`).

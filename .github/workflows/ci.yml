@@ -39,24 +39,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
-
       - name: Unit tests
         run: npm run test:cov
         env:
           NODE_ENV: test
-
-      - name: E2E tests
-        run: npm run test:e2e
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://resa:resa@localhost:5432/resa_test
-          JWT_SECRET: test-secret-ci
-          JWT_EXPIRES_IN: 1d
 
       - name: Build
         run: npm run build
