@@ -1,5 +1,5 @@
 import { apiGet, hasApiBaseUrl } from './api';
-import type { WidgetConfig } from '../types';
+import type { LogementItem, WidgetConfig } from '../types';
 
 const mockWidgetConfig: WidgetConfig = {
   token: 'demo-widget',
@@ -16,6 +16,10 @@ const mockWidgetConfig: WidgetConfig = {
   couleurTexte: '#102a43',
   borderRadius: 18,
 };
+
+export async function fetchLogements(token: string): Promise<LogementItem[]> {
+  return apiGet<LogementItem[]>(`/widget/${token}/logements`);
+}
 
 export async function fetchWidgetConfig(token: string): Promise<WidgetConfig> {
   if (!hasApiBaseUrl()) {

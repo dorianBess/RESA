@@ -28,7 +28,14 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur API POST ${path}`);
+    let msg = `Erreur ${response.status}`;
+    try {
+      const data = await response.json();
+      if (data?.message) msg = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
   }
 
   return (await response.json()) as T;
