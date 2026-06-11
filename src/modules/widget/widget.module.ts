@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TenantEntity } from '@modules/tenant/infrastructure/entities/tenant.entity';
+import { LogementEntity } from '@modules/logement/infrastructure/entities/logement.entity';
+import { TarifBaseEntity } from '@modules/logement/infrastructure/entities/tarif-base.entity';
+import { ReservationModule } from '@modules/reservation/reservation.module';
 import { WidgetController } from './infrastructure/controllers/widget.controller';
 import { PublicWidgetController } from './infrastructure/controllers/public-widget.controller';
 import { WidgetRepository } from './infrastructure/repositories/widget.repository';
@@ -10,7 +13,10 @@ import { ModifierConfigWidgetUseCase } from './application/use-cases/modifier-co
 import { RegenerarTokenWidgetUseCase } from './application/use-cases/regenerer-token-widget.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TenantEntity])],
+  imports: [
+    TypeOrmModule.forFeature([TenantEntity, LogementEntity, TarifBaseEntity]),
+    ReservationModule,
+  ],
   controllers: [WidgetController, PublicWidgetController],
   providers: [
     ObtenirConfigWidgetUseCase,

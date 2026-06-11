@@ -21,7 +21,7 @@ export class BlocageDatesEntity {
   @Column({ type: 'enum', enum: SourceBlocage })
   source: SourceBlocage;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   motif: string | null;
 
   @Column({ default: 'NORMAL' })

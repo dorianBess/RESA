@@ -1,10 +1,20 @@
+export type LogementItem = {
+  id: string;
+  nom: string;
+  description: string;
+  capacite: number;
+  tarifParNuit: number;
+  devise: string;
+  ville?: string;
+};
+
 export type WidgetConfig = {
   token: string;
   logementId: string;
   logementNom: string;
   description: string;
   capacite: number;
-  ville: string;
+  ville?: string;
   tarifParNuit: number;
   devise: string;
   couleurPrimaire: string;

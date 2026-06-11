@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Stack, Typography } from '@mui/material';
 import type { PropsWithChildren } from 'react';
 import type { WidgetConfig } from '../types';
 
@@ -8,33 +8,85 @@ type WidgetCardProps = PropsWithChildren<{
 
 export function WidgetCard({ config, children }: WidgetCardProps) {
   return (
-    <Card
-      sx={{
-        overflow: 'hidden',
-      }}
-    >
+    <Card sx={{ overflow: 'hidden', maxWidth: 960, mx: 'auto', width: '100%' }}>
+      {/* Header */}
       <Box
         sx={{
-          p: 3,
+          px: { xs: 3, md: 4 },
+          pt: { xs: 3, md: 4 },
+          pb: 3,
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.main}99 100%)`,
           color: 'common.white',
-          background:
-            'linear-gradient(135deg, rgba(27,73,101,1) 0%, rgba(92,131,153,1) 100%)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -40,
+            right: -40,
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+          },
         }}
       >
-        <Stack spacing={1.5}>
-          <Chip
-            label={`${config.ville} • ${config.capacite} voyageurs max`}
-            sx={{
-              width: 'fit-content',
-              bgcolor: 'rgba(255,255,255,0.18)',
-              color: 'common.white',
-            }}
-          />
-          <Typography variant="h4">{config.logementNom}</Typography>
-          <Typography sx={{ maxWidth: 640, opacity: 0.9 }}>{config.description}</Typography>
+        <Stack spacing={0.5}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Typography fontSize={28}>🏡</Typography>
+            <Typography
+              variant="overline"
+              sx={{ opacity: 0.75, letterSpacing: 2, fontSize: '0.7rem' }}
+            >
+              Réservation en ligne
+            </Typography>
+          </Stack>
+          <Typography variant="h4" fontWeight={800} lineHeight={1.2}>
+            {config.logementNom}
+          </Typography>
+          {config.description && (
+            <Typography
+              variant="body2"
+              sx={{
+                opacity: 0.85,
+                maxWidth: 600,
+                mt: 0.5,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {config.description}
+            </Typography>
+          )}
+          <Stack direction="row" spacing={2} sx={{ mt: 1.5 }} flexWrap="wrap">
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Typography fontSize={14}>👥</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9, fontWeight: 600 }}>
+                {config.capacite} voyageur{config.capacite > 1 ? 's' : ''} max
+              </Typography>
+            </Stack>
+            {(config.ville ?? config.description) && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Typography fontSize={14}>📍</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.9, fontWeight: 600 }}>
+                  {config.ville ?? config.description}
+                </Typography>
+              </Stack>
+            )}
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Typography fontSize={14}>💶</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9, fontWeight: 600 }}>
+                {config.tarifParNuit} {config.devise} / nuit
+              </Typography>
+            </Stack>
+          </Stack>
         </Stack>
       </Box>
-      <CardContent sx={{ p: { xs: 2, md: 3 } }}>{children}</CardContent>
+
+      <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>{children}</CardContent>
     </Card>
   );
 }

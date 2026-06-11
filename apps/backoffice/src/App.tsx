@@ -23,10 +23,11 @@ export default function App() {
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings | null>(null);
 
   useEffect(() => {
-    fetchLogements().then(setLogements);
-    fetchReservations().then(setReservations);
-    fetchWidgetSettings().then(setWidgetSettings);
-  }, []);
+    if (!session) return;
+    fetchLogements().then(setLogements).catch(console.error);
+    fetchReservations().then(setReservations).catch(console.error);
+    fetchWidgetSettings().then(setWidgetSettings).catch(console.error);
+  }, [session]);
 
   const handleLogin = async (email: string, password: string) => {
     const nextSession = await login(email, password);
@@ -39,7 +40,7 @@ export default function App() {
   };
 
   const content = useMemo(() => {
-    if (!session || !widgetSettings) {
+    if (!session) {
       return null;
     }
 
@@ -49,12 +50,12 @@ export default function App() {
       case 'reservations':
         return <ReservationsPage reservations={reservations} />;
       case 'widget':
-        return (
+        return widgetSettings ? (
           <WidgetPage
             settings={widgetSettings}
             embedCode={buildWidgetEmbedCode(widgetSettings.tokenPublic)}
           />
-        );
+        ) : null;
       case 'dashboard':
       default:
         return (

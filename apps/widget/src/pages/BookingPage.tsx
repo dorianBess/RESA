@@ -4,9 +4,12 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
+  Divider,
   Grid,
   MenuItem,
+  Paper,
   Stack,
   Step,
   StepLabel,
@@ -29,22 +32,28 @@ type BookingPageProps = {
   config: WidgetConfig;
 };
 
-const steps = ['Séjour', 'Coordonnées', 'Confirmation'];
+const steps = ['Votre séjour', 'Coordonnées', 'Confirmation'];
 
 function countNights(dateDebut: string, dateFin: string): number {
-  if (!dateDebut || !dateFin) {
-    return 0;
-  }
-
-  const start = new Date(dateDebut);
-  const end = new Date(dateFin);
-  const diffMs = end.getTime() - start.getTime();
-
-  if (Number.isNaN(diffMs) || diffMs <= 0) {
-    return 0;
-  }
-
+  if (!dateDebut || !dateFin) return 0;
+  const diffMs = new Date(dateFin).getTime() - new Date(dateDebut).getTime();
+  if (Number.isNaN(diffMs) || diffMs <= 0) return 0;
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
+  return (
+    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+      <Typography fontSize={18}>{emoji}</Typography>
+      <Typography
+        variant="subtitle1"
+        fontWeight={700}
+        sx={{ borderLeft: '3px solid', borderColor: 'primary.main', pl: 1.5, lineHeight: 1.3 }}
+      >
+        {title}
+      </Typography>
+    </Stack>
+  );
 }
 
 export function BookingPage({ config }: BookingPageProps) {
@@ -66,26 +75,24 @@ export function BookingPage({ config }: BookingPageProps) {
   });
 
   useEffect(() => {
-    fetchBlockedRanges(config.logementId).then(setBlockedRanges);
-  }, [config.logementId]);
+    fetchBlockedRanges(config.token, config.logementId)
+      .then(setBlockedRanges)
+      .catch(() => setBlockedRanges([]));
+  }, [config.token, config.logementId]);
 
   const dateDebutText = form.dateDebut?.format('YYYY-MM-DD') ?? '';
   const dateFinText = form.dateFin?.format('YYYY-MM-DD') ?? '';
   const nights = useMemo(() => countNights(dateDebutText, dateFinText), [dateDebutText, dateFinText]);
   const total = nights * config.tarifParNuit;
 
-  const updateField = (field: string, value: string | number | Dayjs | null) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  };
+  const updateField = (field: string, value: string | number | Dayjs | null) =>
+    setForm((cur) => ({ ...cur, [field]: value }));
 
   const resetBooking = () => {
     setActiveStep(0);
     setConfirmation(null);
     setMessage(null);
-      setForm({
+    setForm({
       dateDebut: null,
       dateFin: null,
       nbPersonnes: 1,
@@ -103,26 +110,22 @@ export function BookingPage({ config }: BookingPageProps) {
       setMessage('Merci de sélectionner des dates valides.');
       return;
     }
-
     setLoading(true);
     setMessage(null);
-
     try {
-      const result = await checkAvailability({
+      const result = await checkAvailability(config.token, {
         logementId: config.logementId,
         dateDebut: dateDebutText,
         dateFin: dateFinText,
         nbPersonnes: form.nbPersonnes,
       });
-
       if (!result.disponible) {
         setMessageType('error');
-        setMessage(result.motif ?? 'Le logement n’est pas disponible sur cette période.');
+        setMessage(result.motif ?? "Le logement n'est pas disponible sur cette période.");
         return;
       }
-
       setMessageType('success');
-      setMessage('Le logement est disponible. Vous pouvez poursuivre votre demande.');
+      setMessage('Le logement est disponible !');
       setActiveStep(1);
     } finally {
       setLoading(false);
@@ -130,23 +133,15 @@ export function BookingPage({ config }: BookingPageProps) {
   };
 
   const handleCreateReservation = async () => {
-    if (
-      !form.voyageurNom ||
-      !form.voyageurPrenom ||
-      !form.voyageurEmail ||
-      !form.voyageurTelephone ||
-      nights <= 0
-    ) {
+    if (!form.voyageurNom || !form.voyageurPrenom || !form.voyageurEmail || nights <= 0) {
       setMessageType('error');
-      setMessage('Merci de remplir tous les champs obligatoires.');
+      setMessage('Merci de remplir les champs obligatoires (nom, prénom, email).');
       return;
     }
-
     setLoading(true);
     setMessage(null);
-
     try {
-      const result = await createReservation({
+      const result = await createReservation(config.token, {
         logementId: config.logementId,
         dateDebut: dateDebutText,
         dateFin: dateFinText,
@@ -158,11 +153,11 @@ export function BookingPage({ config }: BookingPageProps) {
         notes: form.notes,
         montantTotal: total,
       });
-
       setConfirmation(result);
       setActiveStep(2);
-      setMessageType('success');
-      setMessage('Votre demande a bien été enregistrée.');
+    } catch (err) {
+      setMessageType('error');
+      setMessage(err instanceof Error ? err.message : 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -170,40 +165,51 @@ export function BookingPage({ config }: BookingPageProps) {
 
   return (
     <Stack spacing={3}>
+      {/* Stepper */}
       <Stepper activeStep={activeStep} alternativeLabel>
-        {steps.map((step) => (
-          <Step key={step}>
-            <StepLabel>{step}</StepLabel>
+        {steps.map((step, index) => (
+          <Step key={step} completed={activeStep > index}>
+            <StepLabel
+              sx={{ '& .MuiStepLabel-label': { fontWeight: activeStep === index ? 700 : 400 } }}
+            >
+              {step}
+            </StepLabel>
           </Step>
         ))}
       </Stepper>
 
-      {message ? <Alert severity={messageType}>{message}</Alert> : null}
+      <Divider />
+
+      {message && (
+        <Alert severity={messageType} sx={{ borderRadius: 2 }}>
+          {message}
+        </Alert>
+      )}
 
       {activeStep === 2 && confirmation ? (
         <ConfirmationPage config={config} reference={confirmation} onReset={resetBooking} />
       ) : (
         <Grid container spacing={3}>
+          {/* Colonne gauche : formulaire */}
           <Grid size={{ xs: 12, md: 7 }}>
             <Stack spacing={3}>
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Votre séjour
-                </Typography>
+              {/* Dates + voyageurs */}
+              <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+                <SectionHeader emoji="📅" title="Votre séjour" />
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, lg: 6 }}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <AvailabilityCalendar
                       label="Date d'arrivée"
                       value={form.dateDebut}
-                      onChange={(value) => updateField('dateDebut', value)}
+                      onChange={(v) => updateField('dateDebut', v)}
                       blockedRanges={blockedRanges}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, lg: 6 }}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <AvailabilityCalendar
                       label="Date de départ"
                       value={form.dateFin}
-                      onChange={(value) => updateField('dateFin', value)}
+                      onChange={(v) => updateField('dateFin', v)}
                       blockedRanges={blockedRanges}
                       minDate={form.dateDebut ?? dayjs()}
                     />
@@ -214,46 +220,74 @@ export function BookingPage({ config }: BookingPageProps) {
                       select
                       label="Voyageurs"
                       value={form.nbPersonnes}
-                      onChange={(event) => updateField('nbPersonnes', Number(event.target.value))}
+                      onChange={(e) => updateField('nbPersonnes', Number(e.target.value))}
                     >
-                      {Array.from({ length: config.capacite }, (_, index) => index + 1).map((value) => (
-                        <MenuItem key={value} value={value}>
-                          {value}
+                      {Array.from({ length: config.capacite }, (_, i) => i + 1).map((v) => (
+                        <MenuItem key={v} value={v}>
+                          {v} voyageur{v > 1 ? 's' : ''}
                         </MenuItem>
                       ))}
                     </TextField>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Période sélectionnée"
-                      value={
-                        dateDebutText && dateFinText
-                          ? `${dateDebutText} → ${dateFinText}`
-                          : 'Aucune période sélectionnée'
-                      }
-                      slotProps={{ input: { readOnly: true } }}
-                    />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        flexWrap: 'wrap',
+                        minHeight: 56,
+                      }}
+                    >
+                      {dateDebutText && dateFinText ? (
+                        <>
+                          <Chip
+                            label={form.dateDebut?.format('D MMM')}
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            →
+                          </Typography>
+                          <Chip
+                            label={form.dateFin?.format('D MMM')}
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                          />
+                          {nights > 0 && (
+                            <Chip
+                              label={`${nights} nuit${nights > 1 ? 's' : ''}`}
+                              size="small"
+                              color="primary"
+                              sx={{ fontWeight: 700 }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          Sélectionnez vos dates
+                        </Typography>
+                      )}
+                    </Box>
                   </Grid>
                 </Grid>
-              </Box>
+              </Paper>
 
-              {activeStep >= 1 ? (
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Vos coordonnées
-                  </Typography>
-                  <GuestForm
-                    values={form}
-                    onChange={(field, value) => updateField(field, value)}
-                  />
-                </Box>
-              ) : null}
+              {/* Coordonnées (étape 2) */}
+              {activeStep >= 1 && (
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+                  <SectionHeader emoji="👤" title="Vos coordonnées" />
+                  <GuestForm values={form} onChange={updateField} />
+                </Paper>
+              )}
             </Stack>
           </Grid>
 
+          {/* Colonne droite : récap + actions */}
           <Grid size={{ xs: 12, md: 5 }}>
-            <Stack spacing={2}>
+            <Stack spacing={2} sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
               <PriceSummary
                 nights={nights}
                 tarifParNuit={config.tarifParNuit}
@@ -261,25 +295,50 @@ export function BookingPage({ config }: BookingPageProps) {
                 total={total}
               />
 
-              {/* Le montant estimé est affiché, mais le montant effectivement facturé
-                  ne peut pas encore être garanti ici tant que l'intégration Stripe
-                  n'est pas mise en place. */}
-              <Alert severity="info">
-                Paiement non activé pour le moment. La demande est enregistrée sans règlement en ligne.
+              <Alert severity="info" sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
+                Paiement non activé — la demande est enregistrée sans règlement en ligne.
               </Alert>
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <Stack spacing={1.5}>
                 {activeStep === 0 ? (
-                  <Button variant="contained" onClick={handleCheckAvailability} disabled={loading}>
-                    {loading ? <CircularProgress size={20} color="inherit" /> : 'Vérifier la disponibilité'}
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={handleCheckAvailability}
+                    disabled={loading || !dateDebutText || !dateFinText}
+                    sx={{ py: 1.5, fontWeight: 700, borderRadius: 2 }}
+                  >
+                    {loading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      'Vérifier la disponibilité'
+                    )}
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outlined" onClick={() => setActiveStep(0)} disabled={loading}>
-                      Modifier le séjour
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      onClick={() => setActiveStep(0)}
+                      disabled={loading}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      ← Modifier le séjour
                     </Button>
-                    <Button variant="contained" onClick={handleCreateReservation} disabled={loading}>
-                      {loading ? <CircularProgress size={20} color="inherit" /> : 'Envoyer la demande'}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      onClick={handleCreateReservation}
+                      disabled={loading}
+                      sx={{ py: 1.5, fontWeight: 700, borderRadius: 2 }}
+                    >
+                      {loading ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : (
+                        'Envoyer la demande'
+                      )}
                     </Button>
                   </>
                 )}

@@ -12,7 +12,8 @@ export function buildWidgetTheme(config?: WidgetConfig) {
         main: config?.couleurSecondaire ?? '#f1efe7',
       },
       text: {
-        primary: config?.couleurTexte ?? '#102a43',
+        primary: '#102a43',
+        secondary: '#4a5568',
       },
       background: {
         default: '#f8fafc',
