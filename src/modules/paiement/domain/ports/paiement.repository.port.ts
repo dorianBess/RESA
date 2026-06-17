@@ -28,7 +28,15 @@ export enum StatutPaiement {
 
 export interface IPaiementRepository {
   findById(id: string): Promise<PaiementDomain | null>;
-  findByPaymentIntentId(paymentIntentId: string): Promise<PaiementDomain | null>;
-  save(data: Omit<PaiementDomain, 'id' | 'createdAt' | 'updatedAt'>): Promise<PaiementDomain>;
-  updateStatut(id: string, statut: StatutPaiement, montantRembourse?: number): Promise<PaiementDomain | null>;
+  findByPaymentIntentId(
+    paymentIntentId: string,
+  ): Promise<PaiementDomain | null>;
+  save(
+    data: Omit<PaiementDomain, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<PaiementDomain>;
+  updateStatut(
+    id: string,
+    statut: StatutPaiement,
+    montantRembourse?: number,
+  ): Promise<PaiementDomain | null>;
 }

@@ -1,22 +1,31 @@
 import { ConflictException } from '@nestjs/common';
 import { CreerBlocageUseCase } from './creer-blocage.use-case';
-import { IBlocageRepository, SourceBlocage } from '../../domain/ports/blocage.repository.port';
+import {
+  IBlocageRepository,
+  SourceBlocage,
+} from '../../domain/ports/blocage.repository.port';
 
 describe('CreerBlocageUseCase', () => {
   let useCase: CreerBlocageUseCase;
   let mockRepo: jest.Mocked<IBlocageRepository>;
 
   const cmd = {
-    logementId: 'log-uuid', tenantId: 'tenant-A',
-    dateDebut: new Date('2025-07-20'), dateFin: new Date('2025-07-25'),
+    logementId: 'log-uuid',
+    tenantId: 'tenant-A',
+    dateDebut: new Date('2025-07-20'),
+    dateFin: new Date('2025-07-25'),
     motif: 'Travaux',
   };
 
   beforeEach(() => {
     mockRepo = {
-      findByLogement: jest.fn(), findById: jest.fn(),
-      existsConflictWithReservation: jest.fn(), existsConflict: jest.fn(),
-      create: jest.fn(), delete: jest.fn(), findByDateRange: jest.fn(),
+      findByLogement: jest.fn(),
+      findById: jest.fn(),
+      existsConflictWithReservation: jest.fn(),
+      existsConflict: jest.fn(),
+      create: jest.fn(),
+      delete: jest.fn(),
+      findByDateRange: jest.fn(),
     };
     useCase = new CreerBlocageUseCase(mockRepo);
   });
@@ -27,9 +36,13 @@ describe('CreerBlocageUseCase', () => {
   it('TEST-BLOCAGE-01: crée blocage avec source MANUEL', async () => {
     mockRepo.existsConflictWithReservation.mockResolvedValue(false);
     mockRepo.create.mockResolvedValue({
-      id: 'blocage-uuid', logementId: 'log-uuid', tenantId: 'tenant-A',
-      dateDebut: cmd.dateDebut, dateFin: cmd.dateFin,
-      source: SourceBlocage.MANUEL, motif: 'Travaux',
+      id: 'blocage-uuid',
+      logementId: 'log-uuid',
+      tenantId: 'tenant-A',
+      dateDebut: cmd.dateDebut,
+      dateFin: cmd.dateFin,
+      source: SourceBlocage.MANUEL,
+      motif: 'Travaux',
     });
 
     const result = await useCase.execute(cmd);

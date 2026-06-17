@@ -23,5 +23,8 @@ export interface ITenantRepository {
     motDePasseHash: string;
   }): Promise<TenantDomain>;
   update(id: string, data: Partial<TenantDomain>): Promise<TenantDomain | null>;
-  updateStatut(id: string, statut: StatutAbonnementValue): Promise<TenantDomain | null>;
+  updateStatut(
+    id: string,
+    statut: StatutAbonnementValue,
+  ): Promise<TenantDomain | null>;
 }

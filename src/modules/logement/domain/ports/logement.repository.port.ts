@@ -55,10 +55,19 @@ export enum StatutLogement {
 }
 
 export interface ILogementRepository {
-  findAll(tenantId: string, opts?: { statut?: string; page?: number; limit?: number }): Promise<{ data: LogementDomain[]; total: number }>;
+  findAll(
+    tenantId: string,
+    opts?: { statut?: string; page?: number; limit?: number },
+  ): Promise<{ data: LogementDomain[]; total: number }>;
   findById(id: string, tenantId: string): Promise<LogementDomain | null>;
-  create(data: Omit<LogementDomain, 'id' | 'createdAt' | 'updatedAt'>): Promise<LogementDomain>;
-  update(id: string, tenantId: string, data: Partial<LogementDomain>): Promise<LogementDomain | null>;
+  create(
+    data: Omit<LogementDomain, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<LogementDomain>;
+  update(
+    id: string,
+    tenantId: string,
+    data: Partial<LogementDomain>,
+  ): Promise<LogementDomain | null>;
   hasReservationsFutures(id: string): Promise<boolean>;
   findAllWithoutTenantFilter(id: string): Promise<LogementDomain | null>;
 }

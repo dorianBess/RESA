@@ -9,15 +9,21 @@ describe('ObtenirConfigWidgetUseCase', () => {
     tenantId: 'tenant-A',
     tokenPublic: 'tok_abc123',
     config: {
-      couleurPrimaire: '#3B82F6', couleurSecondaire: '#1E3A5F',
-      couleurTexte: '#FFFFFF', police: 'Inter', borderRadius: 8,
+      couleurPrimaire: '#3B82F6',
+      couleurSecondaire: '#1E3A5F',
+      couleurTexte: '#FFFFFF',
+      police: 'Inter',
+      borderRadius: 8,
     },
-    codeHtml: '<script src="https://api.resa.fr/widget.js" data-token="tok_abc123"></script>',
+    codeHtml:
+      '<script src="https://api.resa.fr/widget.js" data-token="tok_abc123"></script>',
   };
 
   beforeEach(() => {
     mockRepo = {
-      findByTenantId: jest.fn(), upsert: jest.fn(), regenererToken: jest.fn(),
+      findByTenantId: jest.fn(),
+      upsert: jest.fn(),
+      regenererToken: jest.fn(),
     };
     useCase = new ObtenirConfigWidgetUseCase(mockRepo);
   });
@@ -25,7 +31,7 @@ describe('ObtenirConfigWidgetUseCase', () => {
   afterEach(() => jest.clearAllMocks());
 
   // TEST-WIDGET-01 — Récupération config
-  it('TEST-WIDGET-01: retourne tokenPublic + codeHtml avec script d\'intégration', async () => {
+  it("TEST-WIDGET-01: retourne tokenPublic + codeHtml avec script d'intégration", async () => {
     mockRepo.findByTenantId.mockResolvedValue(configExistante);
 
     const result = await useCase.execute('tenant-A');

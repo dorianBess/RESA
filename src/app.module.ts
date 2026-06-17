@@ -9,8 +9,10 @@ import { PaiementModule } from '@modules/paiement/paiement.module';
 import { WidgetModule } from '@modules/widget/widget.module';
 import { SynchronisationModule } from '@modules/synchronisation/synchronisation.module';
 import { NotificationModule } from '@modules/notification/notification.module';
+import { HealthController } from './health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -22,9 +24,10 @@ import { NotificationModule } from '@modules/notification/notification.module';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
-        ssl: config.get<string>('DATABASE_SSL') === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
+        ssl:
+          config.get<string>('DATABASE_SSL') === 'true'
+            ? { rejectUnauthorized: false }
+            : false,
         autoLoadEntities: true,
         synchronize: config.get<string>('NODE_ENV') === 'development',
         logging: config.get<string>('NODE_ENV') === 'development',

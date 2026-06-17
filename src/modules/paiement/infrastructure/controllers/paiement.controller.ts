@@ -17,7 +17,10 @@ export class PaiementController {
 
   @Post(':id/rembourser')
   @UseGuards(JwtAuthGuard)
-  rembourserPaiement(@Param('id') id: string, @Body() body: { montant?: number }) {
+  rembourserPaiement(
+    @Param('id') id: string,
+    @Body() body: { montant?: number },
+  ) {
     return this.rembourser.execute(id, body.montant);
   }
 }

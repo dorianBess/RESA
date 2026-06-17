@@ -8,8 +8,12 @@ describe('UpsertTarifBaseUseCase', () => {
 
   beforeEach(() => {
     mockRepo = {
-      findBase: jest.fn(), upsertBase: jest.fn(), findSaisonniers: jest.fn(),
-      createSaisonnier: jest.fn(), updateSaisonnier: jest.fn(), deleteSaisonnier: jest.fn(),
+      findBase: jest.fn(),
+      upsertBase: jest.fn(),
+      findSaisonniers: jest.fn(),
+      createSaisonnier: jest.fn(),
+      updateSaisonnier: jest.fn(),
+      deleteSaisonnier: jest.fn(),
       findApplicable: jest.fn(),
     };
     useCase = new UpsertTarifBaseUseCase(mockRepo);
@@ -19,11 +23,19 @@ describe('UpsertTarifBaseUseCase', () => {
 
   // TEST-TARIF-01 — Création tarif de base
   it('TEST-TARIF-01: crée tarif de base avec prixParNuit 120 et prixSemaine 750', async () => {
-    const tarif = { id: 'tarif-uuid', logementId: 'log-uuid', prixParNuit: 120, prixSemaine: 750 };
+    const tarif = {
+      id: 'tarif-uuid',
+      logementId: 'log-uuid',
+      prixParNuit: 120,
+      prixSemaine: 750,
+    };
     mockRepo.upsertBase.mockResolvedValue(tarif);
 
     const result = await useCase.execute({
-      logementId: 'log-uuid', tenantId: 'tenant-A', prixParNuit: 120, prixSemaine: 750,
+      logementId: 'log-uuid',
+      tenantId: 'tenant-A',
+      prixParNuit: 120,
+      prixSemaine: 750,
     });
 
     expect(result.prixParNuit).toBe(120);
@@ -32,10 +44,18 @@ describe('UpsertTarifBaseUseCase', () => {
 
   // TEST-TARIF-02 — Mise à jour tarif existant (upsert)
   it('TEST-TARIF-02: upsert crée un seul enregistrement même si tarif existait', async () => {
-    const tarif = { id: 'tarif-uuid', logementId: 'log-uuid', prixParNuit: 120 };
+    const tarif = {
+      id: 'tarif-uuid',
+      logementId: 'log-uuid',
+      prixParNuit: 120,
+    };
     mockRepo.upsertBase.mockResolvedValue(tarif);
 
-    await useCase.execute({ logementId: 'log-uuid', tenantId: 'tenant-A', prixParNuit: 120 });
+    await useCase.execute({
+      logementId: 'log-uuid',
+      tenantId: 'tenant-A',
+      prixParNuit: 120,
+    });
 
     expect(mockRepo.upsertBase).toHaveBeenCalledTimes(1);
   });
@@ -43,7 +63,13 @@ describe('UpsertTarifBaseUseCase', () => {
   // TEST-TARIF-03 — Prix négatif
   it('TEST-TARIF-03: lève BadRequestException "Le prix doit être supérieur à 0"', async () => {
     await expect(
-      useCase.execute({ logementId: 'log-uuid', tenantId: 'tenant-A', prixParNuit: -50 }),
-    ).rejects.toThrow(new BadRequestException('Le prix doit être supérieur à 0'));
+      useCase.execute({
+        logementId: 'log-uuid',
+        tenantId: 'tenant-A',
+        prixParNuit: -50,
+      }),
+    ).rejects.toThrow(
+      new BadRequestException('Le prix doit être supérieur à 0'),
+    );
   });
 });

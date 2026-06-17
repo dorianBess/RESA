@@ -1,16 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IPhotoRepository } from '../../domain/ports/photo.repository.port';
 import { PhotoDomain } from '../../domain/ports/logement.repository.port';
 import { PhotoEntity } from '../entities/photo.entity';
 
 @Injectable()
 export class PhotoRepository implements IPhotoRepository {
-  constructor(@InjectRepository(PhotoEntity) private readonly repo: Repository<PhotoEntity>) {}
+  constructor(
+    @InjectRepository(PhotoEntity)
+    private readonly repo: Repository<PhotoEntity>,
+  ) {}
 
-  async findByLogement(logementId: string, tenantId: string): Promise<PhotoDomain[]> {
-    return this.repo.find({ where: { logementId, tenantId }, order: { ordre: 'ASC' } });
+  async findByLogement(
+    logementId: string,
+    tenantId: string,
+  ): Promise<PhotoDomain[]> {
+    return this.repo.find({
+      where: { logementId, tenantId },
+      order: { ordre: 'ASC' },
+    });
   }
 
   async save(photo: Omit<PhotoDomain, 'id'>): Promise<PhotoDomain> {

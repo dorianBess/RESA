@@ -16,9 +16,15 @@ export class StripeService implements IStripeService {
     });
   }
 
-  async createPaymentIntent(amountCents: number, metadata: Record<string, string>) {
+  async createPaymentIntent(
+    amountCents: number,
+    metadata: Record<string, string>,
+  ) {
     if (this.isMock) {
-      return { id: `mock_pi_${Date.now()}`, clientSecret: `mock_secret_${Date.now()}` };
+      return {
+        id: `mock_pi_${Date.now()}`,
+        clientSecret: `mock_secret_${Date.now()}`,
+      };
     }
     const pi = await this.stripe.paymentIntents.create({
       amount: amountCents,

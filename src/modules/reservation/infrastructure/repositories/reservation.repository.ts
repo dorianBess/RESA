@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import {
   IReservationRepository,
   ReservationDomain,
@@ -19,21 +19,35 @@ export class ReservationRepository implements IReservationRepository {
     private readonly holdRepo: Repository<ReservationHoldEntity>,
   ) {}
 
-  async findById(id: string, tenantId: string): Promise<ReservationDomain | null> {
+  async findById(
+    id: string,
+    tenantId: string,
+  ): Promise<ReservationDomain | null> {
     const r = await this.repo.findOne({ where: { id, tenantId } });
     return r ? this.toDomain(r) : null;
   }
 
-  async findByLogement(logementId: string, tenantId: string): Promise<ReservationDomain[]> {
+  async findByLogement(
+    logementId: string,
+    tenantId: string,
+  ): Promise<ReservationDomain[]> {
     const where: Record<string, string> = { tenantId };
     if (logementId) where.logementId = logementId;
     return (await this.repo.find({ where })).map(this.toDomain);
   }
 
-  async existsConflict(logementId: string, debut: Date, fin: Date, excludeId?: string): Promise<boolean> {
-    const qb = this.repo.createQueryBuilder('r')
+  async existsConflict(
+    logementId: string,
+    debut: Date,
+    fin: Date,
+    excludeId?: string,
+  ): Promise<boolean> {
+    const qb = this.repo
+      .createQueryBuilder('r')
       .where('r.logementId = :logementId', { logementId })
-      .andWhere('r.statut NOT IN (:...statuts)', { statuts: [StatutReservation.ANNULEE, StatutReservation.REMBOURSEE] })
+      .andWhere('r.statut NOT IN (:...statuts)', {
+        statuts: [StatutReservation.ANNULEE, StatutReservation.REMBOURSEE],
+      })
       .andWhere('r.dateDebut < :fin', { fin })
       .andWhere('r.dateFin > :debut', { debut });
     if (excludeId) qb.andWhere('r.id != :excludeId', { excludeId });
@@ -41,26 +55,45 @@ export class ReservationRepository implements IReservationRepository {
   }
 
   async save(reservation: ReservationDomain): Promise<ReservationDomain> {
-    const entity = this.repo.create({ ...reservation } as any) as unknown as ReservationEntity;
+    const entity = this.repo.create({
+      ...reservation,
+    } as any) as unknown as ReservationEntity;
     return this.toDomain(await this.repo.save(entity));
   }
 
-  async updateStatut(id: string, tenantId: string, statut: string): Promise<void> {
-    await this.repo.update({ id, tenantId }, { statut: statut as StatutReservation });
+  async updateStatut(
+    id: string,
+    tenantId: string,
+    statut: string,
+  ): Promise<void> {
+    await this.repo.update(
+      { id, tenantId },
+      { statut: statut as StatutReservation },
+    );
   }
 
-  async createHold(hold: ReservationHoldDomain): Promise<ReservationHoldDomain> {
+  async createHold(
+    hold: ReservationHoldDomain,
+  ): Promise<ReservationHoldDomain> {
     const entity = this.holdRepo.create({ ...hold } as any);
     const saved = await this.holdRepo.save(entity);
     return saved as unknown as ReservationHoldDomain;
   }
 
   async deleteExpiredHolds(): Promise<void> {
-    await this.holdRepo.delete({ statut: 'ACTIF', expiresAt: LessThan(new Date()) as any });
+    await this.holdRepo.delete({
+      statut: 'ACTIF',
+      expiresAt: LessThan(new Date()) as any,
+    });
   }
 
-  async existsActiveHold(logementId: string, debut: Date, fin: Date): Promise<boolean> {
-    const count = await this.holdRepo.createQueryBuilder('h')
+  async existsActiveHold(
+    logementId: string,
+    debut: Date,
+    fin: Date,
+  ): Promise<boolean> {
+    const count = await this.holdRepo
+      .createQueryBuilder('h')
       .where('h.logementId = :logementId', { logementId })
       .andWhere('h.statut = :statut', { statut: 'ACTIF' })
       .andWhere('h.expiresAt > :now', { now: new Date() })

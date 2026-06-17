@@ -21,8 +21,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Widget-Token'],
   });
 
-  // Préfixe global de l'API
-  app.setGlobalPrefix('api/v1');
+  // Préfixe global de l'API — /health exclu pour le healthcheck Render/Docker
+  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

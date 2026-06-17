@@ -1,6 +1,9 @@
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { ArchiverLogementUseCase } from './archiver-logement.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 
 describe('ArchiverLogementUseCase', () => {
   let useCase: ArchiverLogementUseCase;
@@ -32,7 +35,10 @@ describe('ArchiverLogementUseCase', () => {
   it('TEST-LOGEMENT-07: archive logement (statut ARCHIVE, non supprimé physiquement)', async () => {
     mockRepo.findById.mockResolvedValue(logementActif);
     mockRepo.hasReservationsFutures.mockResolvedValue(false);
-    mockRepo.update.mockResolvedValue({ ...logementActif, statut: StatutLogement.ARCHIVE });
+    mockRepo.update.mockResolvedValue({
+      ...logementActif,
+      statut: StatutLogement.ARCHIVE,
+    });
 
     const result = await useCase.execute('logement-uuid', 'tenant-A');
 
@@ -45,12 +51,14 @@ describe('ArchiverLogementUseCase', () => {
   });
 
   // TEST-LOGEMENT-08 — Archivage avec réservations futures
-  it("TEST-LOGEMENT-08: lève ConflictException si réservations futures", async () => {
+  it('TEST-LOGEMENT-08: lève ConflictException si réservations futures', async () => {
     mockRepo.findById.mockResolvedValue(logementActif);
     mockRepo.hasReservationsFutures.mockResolvedValue(true);
 
     await expect(useCase.execute('logement-uuid', 'tenant-A')).rejects.toThrow(
-      new ConflictException("Impossible d'archiver un logement avec des réservations à venir"),
+      new ConflictException(
+        "Impossible d'archiver un logement avec des réservations à venir",
+      ),
     );
   });
 
@@ -58,9 +66,9 @@ describe('ArchiverLogementUseCase', () => {
   it('TEST-LOGEMENT-09: lève NotFoundException si logement introuvable', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('uuid-inexistant', 'tenant-A')).rejects.toThrow(
-      new NotFoundException('Logement introuvable'),
-    );
+    await expect(
+      useCase.execute('uuid-inexistant', 'tenant-A'),
+    ).rejects.toThrow(new NotFoundException('Logement introuvable'));
     expect(mockRepo.hasReservationsFutures).not.toHaveBeenCalled();
   });
 });

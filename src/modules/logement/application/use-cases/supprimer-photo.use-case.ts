@@ -1,10 +1,16 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { PHOTO_REPOSITORY, IPhotoRepository, STORAGE_SERVICE, IStorageService } from '../../domain/ports/photo.repository.port';
+import {
+  PHOTO_REPOSITORY,
+  IPhotoRepository,
+  STORAGE_SERVICE,
+  IStorageService,
+} from '../../domain/ports/photo.repository.port';
 
 @Injectable()
 export class SupprimerPhotoUseCase {
   constructor(
-    @Inject(PHOTO_REPOSITORY) private readonly photoRepository: IPhotoRepository,
+    @Inject(PHOTO_REPOSITORY)
+    private readonly photoRepository: IPhotoRepository,
     @Inject(STORAGE_SERVICE) private readonly storageService: IStorageService,
   ) {}
 

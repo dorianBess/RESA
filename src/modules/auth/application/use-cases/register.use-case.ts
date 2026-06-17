@@ -35,7 +35,11 @@ export class RegisterUseCase {
       email: command.email,
       motDePasseHash,
     });
-    const payload = { sub: tenant.id, email: tenant.email, tenantId: tenant.id };
+    const payload = {
+      sub: tenant.id,
+      email: tenant.email,
+      tenantId: tenant.id,
+    };
     const accessToken = this.jwtService.sign(payload);
     return { accessToken, tenantId: tenant.id };
   }

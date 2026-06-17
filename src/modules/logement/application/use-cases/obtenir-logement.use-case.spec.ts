@@ -1,6 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
 import { ObtenirLogementUseCase } from './obtenir-logement.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 
 describe('ObtenirLogementUseCase', () => {
   let useCase: ObtenirLogementUseCase;
@@ -13,8 +16,18 @@ describe('ObtenirLogementUseCase', () => {
     capacite: 6,
     statut: StatutLogement.ACTIF,
     photos: [],
-    tarifBase: { id: 'tarif-uuid', logementId: 'logement-uuid-001', prixParNuit: 120 },
-    configAcompte: { id: 'ca-uuid', logementId: 'logement-uuid-001', actif: false, pourcentage: 30, delaiSoldeJours: 30 },
+    tarifBase: {
+      id: 'tarif-uuid',
+      logementId: 'logement-uuid-001',
+      prixParNuit: 120,
+    },
+    configAcompte: {
+      id: 'ca-uuid',
+      logementId: 'logement-uuid-001',
+      actif: false,
+      pourcentage: 30,
+      delaiSoldeJours: 30,
+    },
   };
 
   beforeEach(() => {
@@ -46,17 +59,17 @@ describe('ObtenirLogementUseCase', () => {
   it('TEST-LOGEMENT-10: lève NotFoundException "Logement introuvable"', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('uuid-inexistant', 'tenant-A')).rejects.toThrow(
-      new NotFoundException('Logement introuvable'),
-    );
+    await expect(
+      useCase.execute('uuid-inexistant', 'tenant-A'),
+    ).rejects.toThrow(new NotFoundException('Logement introuvable'));
   });
 
   // TEST-LOGEMENT-11 — Isolation multi-tenant (404 depuis autre tenant)
   it('TEST-LOGEMENT-11: retourne 404 quand logement appartient à un autre tenant', async () => {
     mockRepo.findById.mockResolvedValue(null); // le repo filtre par tenantId
 
-    await expect(useCase.execute('logement-uuid-001', 'tenant-B')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      useCase.execute('logement-uuid-001', 'tenant-B'),
+    ).rejects.toThrow(NotFoundException);
   });
 });

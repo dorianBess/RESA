@@ -1,19 +1,103 @@
-name: CI
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pipeline CI/CD — Microservice Résa
+# Déclenchement : push sur main/Dev, pull request vers main/Dev
+# Stages : BUILD → TEST → QUALITY (parallèle avec TEST) → DEPLOY (main only)
+# ═══════════════════════════════════════════════════════════════════════════════
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, Dev]
   pull_request:
-    branches: [main, develop]
+    branches: [main, Dev]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STAGE 1 — BUILD
+# Construction des images Docker et publication sur GHCR.
+# Deux images sont poussées :
+#   - ghcr.io/<repo>:builder-<sha>  → image complète pour les tests (stage builder)
+#   - ghcr.io/<repo>:<sha>          → image de production allégée (stage production)
+#   - ghcr.io/<repo>:latest         → alias de production (sur main uniquement)
+# ───────────────────────────────────────────────────────────────────────────────
 jobs:
-  ci:
-    name: Lint, Test & Build
+  build:
+    name: "Build Docker"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write  # Requis pour pousser sur GHCR
 
+    steps:
+      - name: Checkout du code source
+        uses: actions/checkout@v4
+
+      # Activation de Docker Buildx pour le cache multicouche
+      - name: Configurer Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Authentification GHCR avec le GITHUB_TOKEN automatique (aucun secret à créer)
+      - name: Connexion au GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Construction et push de l'image builder (sources + dev deps → utilisée par les tests)
+      - name: Build et push — image builder (pour les tests)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: builder
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:builder-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Calcule les tags de l'image production : SHA toujours présent, "latest" sur main uniquement
+      - name: Calculer les tags de l'image production
+        id: prod-tags
+        run: |
+          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+      # Construction et push de l'image de production (dist/ + prod deps uniquement)
+      - name: Build et push — image production
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.prod-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STAGE 2 — TEST
+# Exécution des tests unitaires et e2e dans le container Docker builder.
+# La couverture est publiée comme artefact GitHub.
+# ───────────────────────────────────────────────────────────────────────────────
+  test:
+    name: "Tests dans Docker"
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read  # Requis pour pull depuis GHCR
+
+    # Service PostgreSQL pour les tests e2e
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: resa
           POSTGRES_PASSWORD: resa
@@ -27,30 +111,219 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout
+      - name: Checkout du code source
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # Authentification GHCR pour pouvoir pull l'image builder
+      - name: Connexion au GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Récupération de l'image builder construite dans le stage précédent
+      - name: Pull de l'image Docker builder depuis GHCR
+        run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:builder-${{ github.sha }}
+
+      # Créer le répertoire coverage sur le runner pour le montage de volume
+      - name: Préparer le répertoire de couverture
+        run: mkdir -p ${{ github.workspace }}/coverage
+
+      # Tests unitaires avec rapport de couverture — exécutés dans le container Docker
+      # Le volume monte le répertoire coverage pour récupérer le rapport sur le runner
+      - name: Tests unitaires avec couverture (dans Docker)
+        run: |
+          docker run --rm \
+            --name resa-unit-tests \
+            -e NODE_ENV=test \
+            -v ${{ github.workspace }}/coverage:/app/coverage \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:builder-${{ github.sha }} \
+            npm run test:cov
+
+      # Tests e2e dans le container Docker — utilise --network host pour accéder
+      # au service PostgreSQL sur localhost:5432 (fonctionne sur ubuntu-latest Linux)
+      # continue-on-error: true car les fichiers e2e peuvent ne pas encore exister
+      - name: Tests e2e (dans Docker)
+        continue-on-error: true
+        run: |
+          docker run --rm \
+            --name resa-e2e-tests \
+            --network host \
+            -e NODE_ENV=test \
+            -e DATABASE_URL=postgresql://resa:resa@localhost:5432/resa_test \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:builder-${{ github.sha }} \
+            npm run test:e2e
+
+      # Publication du rapport de couverture comme artefact téléchargeable (30 jours)
+      - name: Publier le rapport de couverture
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.sha }}
+          path: coverage/
+          retention-days: 30
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STAGE 3 — QUALITY
+# Analyse qualité et sécurité du code source.
+# Tourne en parallèle avec TEST (les deux dépendent uniquement de BUILD).
+#   - ESLint : respect des règles TypeScript/NestJS
+#   - npm audit : vulnérabilités dans les dépendances
+#   - CodeQL : analyse de sécurité statique (DevSecOps C18)
+# ───────────────────────────────────────────────────────────────────────────────
+  quality:
+    name: "Qualité & Sécurité"
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      security-events: write  # Requis pour publier les résultats CodeQL dans l'onglet Security
+
+    steps:
+      - name: Checkout du code source
+        uses: actions/checkout@v4
+
+      - name: Configurer Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Installer les dépendances
         run: npm ci
 
-      - name: Unit tests
-        run: npm run test:cov
-        env:
-          NODE_ENV: test
+      # ESLint sur le code NestJS uniquement (apps/ contient des frontends avec leur propre config)
+      - name: Analyse ESLint
+        run: npx eslint "src/**/*.ts" --max-warnings 0
 
-      - name: Build
-        run: npm run build
+      # Audit npm — échoue uniquement sur les vulnérabilités critiques ou élevées
+      - name: Audit de sécurité des dépendances (npm audit)
+        run: npm audit --audit-level=high
+        continue-on-error: true  # Ne bloque pas le pipeline (dépendances transitives hors contrôle)
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
+      # Initialisation de l'analyse CodeQL pour TypeScript
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v3
         with:
-          name: coverage
-          path: coverage/
-          retention-days: 7
+          languages: typescript
+          queries: security-and-quality
+
+      # Auto-build du projet pour permettre l'analyse CodeQL
+      - name: Auto-build pour CodeQL
+        uses: github/codeql-action/autobuild@v3
+
+      # Analyse CodeQL — résultats visibles dans Security > Code scanning alerts
+      - name: Analyser avec CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:typescript'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STAGE 4 — DEPLOY (simulation)
+# Simule un déploiement production sans serveur externe :
+#   1. Pull l'image de production depuis GHCR
+#   2. La démarre dans le runner CI avec une vraie base PostgreSQL
+#   3. Vérifie le healthcheck HTTP sur /health
+#   4. Valide que l'image tourne correctement en conditions réelles
+#
+# Pour brancher un vrai Render : remplacer les étapes par le bloc commenté
+# en bas de ce job et configurer RENDER_DEPLOY_HOOK_URL / RENDER_APP_URL.
+# ───────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: "Déploiement simulé (production)"
+    runs-on: ubuntu-latest
+    needs: [test, quality]
+    # Condition stricte : push sur main uniquement (pas les PR, pas les autres branches)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: read  # Pour pull l'image depuis GHCR
+
+    # Base de données de simulation — reproduit les conditions de production
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: resa
+          POSTGRES_PASSWORD: resa
+          POSTGRES_DB: resa_prod_sim
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Authentification GHCR pour pouvoir pull l'image de production
+      - name: Connexion au GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pull de l'image de production construite dans le stage BUILD
+      - name: Pull de l'image de production depuis GHCR
+        run: |
+          echo "Pull de l'image : ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # Démarrage de l'application en mode production dans le runner CI
+      # --network host : permet d'accéder au service postgres sur localhost:5432
+      - name: Démarrer l'application en conditions de production
+        run: |
+          docker run -d \
+            --name resa-prod-sim \
+            --network host \
+            -e NODE_ENV=production \
+            -e PORT=3000 \
+            -e DATABASE_URL=postgresql://resa:resa@localhost:5432/resa_prod_sim \
+            -e DATABASE_SSL=false \
+            -e JWT_SECRET=simulation-secret-ci \
+            -e JWT_EXPIRES_IN=7d \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          echo "Container démarré — attente du démarrage de l'application..."
+
+      # Healthcheck en boucle — reproduit la logique de validation post-déploiement
+      - name: Vérifier le healthcheck (simulation du healthcheck Render)
+        run: |
+          echo "Vérification de GET http://localhost:3000/health"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" \
+              --max-time 5 http://localhost:3000/health 2>/dev/null || echo "000")
+            echo "Tentative $i/10 — HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "Simulation de déploiement réussie — application disponible sur :3000"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "ERREUR : healthcheck KO après 10 tentatives"
+          docker logs resa-prod-sim
+          exit 1
+
+      # Affichage des logs pour audit (toujours exécuté, même en cas d'échec)
+      - name: Logs de l'application (audit)
+        if: always()
+        run: docker logs resa-prod-sim 2>&1 || true
+
+      # Nettoyage du container de simulation
+      - name: Arrêter et supprimer le container de simulation
+        if: always()
+        run: docker rm -f resa-prod-sim 2>/dev/null || true
+
+      # ── Pour brancher un vrai Render, décommenter ce bloc et supprimer les étapes ci-dessus ──
+      # - name: Déclencher le déploiement via webhook Render
+      #   run: curl --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+      # - name: Attendre le démarrage (30 secondes)
+      #   run: sleep 30
+      # - name: Vérifier le healthcheck Render
+      #   run: |
+      #     STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.RENDER_APP_URL }}/health")
+      #     [ "$STATUS" -eq 200 ] || exit 1

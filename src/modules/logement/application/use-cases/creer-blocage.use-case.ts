@@ -1,5 +1,10 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import { BLOCAGE_REPOSITORY, IBlocageRepository, BlocageDomain, SourceBlocage } from '../../domain/ports/blocage.repository.port';
+import {
+  BLOCAGE_REPOSITORY,
+  IBlocageRepository,
+  BlocageDomain,
+  SourceBlocage,
+} from '../../domain/ports/blocage.repository.port';
 
 export interface CreerBlocageCommand {
   logementId: string;
@@ -12,7 +17,8 @@ export interface CreerBlocageCommand {
 @Injectable()
 export class CreerBlocageUseCase {
   constructor(
-    @Inject(BLOCAGE_REPOSITORY) private readonly blocageRepository: IBlocageRepository,
+    @Inject(BLOCAGE_REPOSITORY)
+    private readonly blocageRepository: IBlocageRepository,
   ) {}
 
   async execute(command: CreerBlocageCommand): Promise<BlocageDomain> {
@@ -22,7 +28,9 @@ export class CreerBlocageUseCase {
       command.dateFin,
     );
     if (conflict) {
-      throw new ConflictException('Ces dates chevauchent une réservation existante');
+      throw new ConflictException(
+        'Ces dates chevauchent une réservation existante',
+      );
     }
     return this.blocageRepository.create({
       logementId: command.logementId,

@@ -8,8 +8,12 @@ describe('SupprimerTarifSaisonnierUseCase', () => {
 
   beforeEach(() => {
     mockRepo = {
-      findBase: jest.fn(), upsertBase: jest.fn(), findSaisonniers: jest.fn(),
-      createSaisonnier: jest.fn(), updateSaisonnier: jest.fn(), deleteSaisonnier: jest.fn(),
+      findBase: jest.fn(),
+      upsertBase: jest.fn(),
+      findSaisonniers: jest.fn(),
+      createSaisonnier: jest.fn(),
+      updateSaisonnier: jest.fn(),
+      deleteSaisonnier: jest.fn(),
       findApplicable: jest.fn(),
     };
     useCase = new SupprimerTarifSaisonnierUseCase(mockRepo);
@@ -21,8 +25,13 @@ describe('SupprimerTarifSaisonnierUseCase', () => {
   it('TEST-TARIF-SUP-01: supprime le tarif saisonnier existant', async () => {
     mockRepo.deleteSaisonnier.mockResolvedValue(true);
 
-    await expect(useCase.execute('ts-uuid', 'tenant-A')).resolves.toBeUndefined();
-    expect(mockRepo.deleteSaisonnier).toHaveBeenCalledWith('ts-uuid', 'tenant-A');
+    await expect(
+      useCase.execute('ts-uuid', 'tenant-A'),
+    ).resolves.toBeUndefined();
+    expect(mockRepo.deleteSaisonnier).toHaveBeenCalledWith(
+      'ts-uuid',
+      'tenant-A',
+    );
   });
 
   // TEST-TARIF-SUP-02 — Tarif introuvable

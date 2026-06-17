@@ -7,7 +7,6 @@ import {
   StatutAbonnementValue,
 } from '../../domain/ports/tenant.repository.port';
 import { TenantEntity, StatutAbonnement } from '../entities/tenant.entity';
-import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class TenantRepository implements ITenantRepository {
@@ -17,7 +16,7 @@ export class TenantRepository implements ITenantRepository {
   ) {}
 
   async findAll(): Promise<TenantDomain[]> {
-    return this.repo.find().then(ts => ts.map(this.toDomain));
+    return this.repo.find().then((ts) => ts.map(this.toDomain));
   }
 
   async findById(id: string): Promise<TenantDomain | null> {
@@ -43,14 +42,20 @@ export class TenantRepository implements ITenantRepository {
     return this.toDomain(await this.repo.save(t));
   }
 
-  async update(id: string, data: Partial<TenantDomain>): Promise<TenantDomain | null> {
+  async update(
+    id: string,
+    data: Partial<TenantDomain>,
+  ): Promise<TenantDomain | null> {
     const t = await this.repo.findOne({ where: { id } });
     if (!t) return null;
     Object.assign(t, data);
     return this.toDomain(await this.repo.save(t));
   }
 
-  async updateStatut(id: string, statut: StatutAbonnementValue): Promise<TenantDomain | null> {
+  async updateStatut(
+    id: string,
+    statut: StatutAbonnementValue,
+  ): Promise<TenantDomain | null> {
     const t = await this.repo.findOne({ where: { id } });
     if (!t) return null;
     t.abonnementStatut = statut as StatutAbonnement;

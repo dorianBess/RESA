@@ -36,7 +36,10 @@ describe('LoginUseCase', () => {
     mockRepo.findByEmail.mockResolvedValue(mockTenant);
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    const result = await useCase.execute('contact@gites-provence.fr', 'motdepasse123');
+    const result = await useCase.execute(
+      'contact@gites-provence.fr',
+      'motdepasse123',
+    );
 
     expect(result.accessToken).toBe('jwt.token.valid');
     expect(result.expiresAt).toBeInstanceOf(Date);

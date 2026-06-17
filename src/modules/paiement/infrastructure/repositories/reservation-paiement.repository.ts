@@ -14,15 +14,20 @@ export class ReservationPaiementRepository implements IReservationPaiementReposi
     private readonly repo: Repository<ReservationEntity>,
   ) {}
 
-  async findByPaymentIntentId(paymentIntentId: string): Promise<ReservationForPaiement | null> {
-    const r = await this.repo.findOne({ where: { stripePaymentIntentId: paymentIntentId } });
+  async findByPaymentIntentId(
+    paymentIntentId: string,
+  ): Promise<ReservationForPaiement | null> {
+    const r = await this.repo.findOne({
+      where: { stripePaymentIntentId: paymentIntentId },
+    });
     if (!r) return null;
     return {
       id: r.id,
       tenantId: r.tenantId,
       statut: r.statut,
       montantTotal: Number(r.montantTotal),
-      montantAcompte: r.montantAcompte != null ? Number(r.montantAcompte) : undefined,
+      montantAcompte:
+        r.montantAcompte != null ? Number(r.montantAcompte) : undefined,
       stripePaymentIntentId: r.stripePaymentIntentId ?? undefined,
     };
   }

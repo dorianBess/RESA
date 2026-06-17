@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { IIcalFetcher, IcalEvent } from '../../domain/ports/ical.repository.port';
+import {
+  IIcalFetcher,
+  IcalEvent,
+} from '../../domain/ports/ical.repository.port';
 
 @Injectable()
 export class IcalFetcherService implements IIcalFetcher {

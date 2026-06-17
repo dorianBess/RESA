@@ -1,5 +1,8 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { ICAL_REPOSITORY, IIcalRepository } from '../../domain/ports/ical.repository.port';
+import {
+  ICAL_REPOSITORY,
+  IIcalRepository,
+} from '../../domain/ports/ical.repository.port';
 
 function isValidUrl(url: string): boolean {
   try {

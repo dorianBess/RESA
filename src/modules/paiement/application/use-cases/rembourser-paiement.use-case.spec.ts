@@ -1,6 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { RembourserPaiementUseCase } from './rembourser-paiement.use-case';
-import { IPaiementRepository, StatutPaiement, TypePaiement } from '../../domain/ports/paiement.repository.port';
+import {
+  IPaiementRepository,
+  StatutPaiement,
+  TypePaiement,
+} from '../../domain/ports/paiement.repository.port';
 import { IStripeService } from '@modules/reservation/domain/ports/stripe.service.port';
 
 describe('RembourserPaiementUseCase', () => {
@@ -9,18 +13,26 @@ describe('RembourserPaiementUseCase', () => {
   let mockStripe: jest.Mocked<IStripeService>;
 
   const paiementCapture = {
-    id: 'paie-uuid', reservationId: 'resa-uuid', tenantId: 'tenant-A',
-    type: TypePaiement.TOTAL, statut: StatutPaiement.CAPTURE,
-    montant: 840, stripePaymentIntentId: 'pi_valid',
+    id: 'paie-uuid',
+    reservationId: 'resa-uuid',
+    tenantId: 'tenant-A',
+    type: TypePaiement.TOTAL,
+    statut: StatutPaiement.CAPTURE,
+    montant: 840,
+    stripePaymentIntentId: 'pi_valid',
   };
 
   beforeEach(() => {
     mockPaiementRepo = {
-      findById: jest.fn(), findByPaymentIntentId: jest.fn(),
-      save: jest.fn(), updateStatut: jest.fn(),
+      findById: jest.fn(),
+      findByPaymentIntentId: jest.fn(),
+      save: jest.fn(),
+      updateStatut: jest.fn(),
     };
     mockStripe = {
-      createPaymentIntent: jest.fn(), retrievePaymentIntent: jest.fn(), refund: jest.fn(),
+      createPaymentIntent: jest.fn(),
+      retrievePaymentIntent: jest.fn(),
+      refund: jest.fn(),
     };
     useCase = new RembourserPaiementUseCase(mockPaiementRepo, mockStripe);
   });
@@ -32,7 +44,9 @@ describe('RembourserPaiementUseCase', () => {
     mockPaiementRepo.findById.mockResolvedValue(paiementCapture);
     mockStripe.refund.mockResolvedValue();
     mockPaiementRepo.updateStatut.mockResolvedValue({
-      ...paiementCapture, statut: StatutPaiement.REMBOURSE, montantRembourse: 840,
+      ...paiementCapture,
+      statut: StatutPaiement.REMBOURSE,
+      montantRembourse: 840,
     });
 
     const result = await useCase.execute('paie-uuid');
@@ -47,7 +61,9 @@ describe('RembourserPaiementUseCase', () => {
     mockPaiementRepo.findById.mockResolvedValue(paiementCapture);
     mockStripe.refund.mockResolvedValue();
     mockPaiementRepo.updateStatut.mockResolvedValue({
-      ...paiementCapture, statut: StatutPaiement.REMBOURSE, montantRembourse: 420,
+      ...paiementCapture,
+      statut: StatutPaiement.REMBOURSE,
+      montantRembourse: 420,
     });
 
     const result = await useCase.execute('paie-uuid', 420);

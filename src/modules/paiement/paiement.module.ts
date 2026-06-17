@@ -19,7 +19,10 @@ import { RembourserPaiementUseCase } from './application/use-cases/rembourser-pa
     ConfirmerPaiementUseCase,
     RembourserPaiementUseCase,
     { provide: PAIEMENT_REPOSITORY, useClass: PaiementRepository },
-    { provide: RESERVATION_PAIEMENT_REPOSITORY, useClass: ReservationPaiementRepository },
+    {
+      provide: RESERVATION_PAIEMENT_REPOSITORY,
+      useClass: ReservationPaiementRepository,
+    },
     { provide: STRIPE_SERVICE, useClass: StripeService },
   ],
 })

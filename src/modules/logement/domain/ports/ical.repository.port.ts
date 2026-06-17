@@ -14,10 +14,21 @@ export interface IIcalFetcher {
 }
 
 export interface IIcalRepository {
-  saveUrls(logementId: string, tenantId: string, data: { urlIcalAirbnb?: string; urlIcalBooking?: string }): Promise<void>;
-  getUrls(logementId: string): Promise<{ urlIcalAirbnb?: string; urlIcalBooking?: string } | null>;
+  saveUrls(
+    logementId: string,
+    tenantId: string,
+    data: { urlIcalAirbnb?: string; urlIcalBooking?: string },
+  ): Promise<void>;
+  getUrls(
+    logementId: string,
+  ): Promise<{ urlIcalAirbnb?: string; urlIcalBooking?: string } | null>;
 }
 
 export interface INotificationService {
-  sendConflitIcalAlert(tenantEmail: string, logementNom: string, dateDebut: Date, dateFin: Date): Promise<void>;
+  sendConflitIcalAlert(
+    tenantEmail: string,
+    logementNom: string,
+    dateDebut: Date,
+    dateFin: Date,
+  ): Promise<void>;
 }

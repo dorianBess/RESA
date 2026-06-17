@@ -1,5 +1,8 @@
 import { ListerTenantsUseCase } from './lister-tenants.use-case';
-import { ITenantRepository, TenantDomain } from '../../domain/ports/tenant.repository.port';
+import {
+  ITenantRepository,
+  TenantDomain,
+} from '../../domain/ports/tenant.repository.port';
 
 describe('ListerTenantsUseCase', () => {
   let useCase: ListerTenantsUseCase;
@@ -7,12 +10,20 @@ describe('ListerTenantsUseCase', () => {
 
   const tenants: TenantDomain[] = [
     {
-      id: 'tenant-1', raisonSociale: 'Gîte des Alpes', email: 'alpes@gites.fr',
-      abonnementStatut: 'ACTIF', abonnementDebut: null, abonnementFin: null,
+      id: 'tenant-1',
+      raisonSociale: 'Gîte des Alpes',
+      email: 'alpes@gites.fr',
+      abonnementStatut: 'ACTIF',
+      abonnementDebut: null,
+      abonnementFin: null,
     },
     {
-      id: 'tenant-2', raisonSociale: 'Mas Provençal', email: 'mas@provence.fr',
-      abonnementStatut: 'ESSAI', abonnementDebut: null, abonnementFin: null,
+      id: 'tenant-2',
+      raisonSociale: 'Mas Provençal',
+      email: 'mas@provence.fr',
+      abonnementStatut: 'ESSAI',
+      abonnementDebut: null,
+      abonnementFin: null,
     },
   ];
 
@@ -42,7 +53,7 @@ describe('ListerTenantsUseCase', () => {
   });
 
   // TEST-TENANT-LIST-02 — Liste vide
-  it('TEST-TENANT-LIST-02: retourne une liste vide s\'il n\'y a aucun tenant', async () => {
+  it("TEST-TENANT-LIST-02: retourne une liste vide s'il n'y a aucun tenant", async () => {
     mockRepo.findAll.mockResolvedValue([]);
 
     const result = await useCase.execute();

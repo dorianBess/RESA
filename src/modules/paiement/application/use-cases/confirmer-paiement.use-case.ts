@@ -10,24 +10,31 @@ import {
   RESERVATION_PAIEMENT_REPOSITORY,
   IReservationPaiementRepository,
 } from '../../domain/ports/reservation-paiement.repository.port';
-import { STRIPE_SERVICE, IStripeService } from '@modules/reservation/domain/ports/stripe.service.port';
+import {
+  STRIPE_SERVICE,
+  IStripeService,
+} from '@modules/reservation/domain/ports/stripe.service.port';
 
 @Injectable()
 export class ConfirmerPaiementUseCase {
   constructor(
-    @Inject(PAIEMENT_REPOSITORY) private readonly paiementRepository: IPaiementRepository,
-    @Inject(RESERVATION_PAIEMENT_REPOSITORY) private readonly reservationRepository: IReservationPaiementRepository,
+    @Inject(PAIEMENT_REPOSITORY)
+    private readonly paiementRepository: IPaiementRepository,
+    @Inject(RESERVATION_PAIEMENT_REPOSITORY)
+    private readonly reservationRepository: IReservationPaiementRepository,
     @Inject(STRIPE_SERVICE) private readonly stripeService: IStripeService,
   ) {}
 
   async execute(paymentIntentId: string): Promise<PaiementDomain> {
     // Idempotence — retourner sans doublon si déjà capturé
-    const existant = await this.paiementRepository.findByPaymentIntentId(paymentIntentId);
+    const existant =
+      await this.paiementRepository.findByPaymentIntentId(paymentIntentId);
     if (existant && existant.statut === StatutPaiement.CAPTURE) {
       return existant;
     }
 
-    const reservation = await this.reservationRepository.findByPaymentIntentId(paymentIntentId);
+    const reservation =
+      await this.reservationRepository.findByPaymentIntentId(paymentIntentId);
     if (!reservation) {
       throw new BadRequestException('PaymentIntent invalide ou non confirmé');
     }
@@ -38,7 +45,9 @@ export class ConfirmerPaiementUseCase {
     }
 
     const montant = pi.amount / 100;
-    const hasAcompte = reservation.montantAcompte !== undefined && reservation.montantAcompte !== null;
+    const hasAcompte =
+      reservation.montantAcompte !== undefined &&
+      reservation.montantAcompte !== null;
     const type = hasAcompte ? TypePaiement.ACOMPTE : TypePaiement.TOTAL;
 
     const paiement = await this.paiementRepository.save({

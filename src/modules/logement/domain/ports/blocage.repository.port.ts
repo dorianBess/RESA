@@ -26,9 +26,22 @@ export interface IBlocageRepository {
     opts?: { dateDebut?: Date; dateFin?: Date; source?: string },
   ): Promise<BlocageDomain[]>;
   findById(id: string): Promise<BlocageDomain | null>;
-  existsConflictWithReservation(logementId: string, dateDebut: Date, dateFin: Date): Promise<boolean>;
-  existsConflict(logementId: string, dateDebut: Date, dateFin: Date): Promise<boolean>;
+  existsConflictWithReservation(
+    logementId: string,
+    dateDebut: Date,
+    dateFin: Date,
+  ): Promise<boolean>;
+  existsConflict(
+    logementId: string,
+    dateDebut: Date,
+    dateFin: Date,
+  ): Promise<boolean>;
   create(data: Omit<BlocageDomain, 'id' | 'createdAt'>): Promise<BlocageDomain>;
   delete(id: string): Promise<void>;
-  findByDateRange(logementId: string, dateDebut: Date, dateFin: Date, source?: SourceBlocage): Promise<BlocageDomain[]>;
+  findByDateRange(
+    logementId: string,
+    dateDebut: Date,
+    dateFin: Date,
+    source?: SourceBlocage,
+  ): Promise<BlocageDomain[]>;
 }

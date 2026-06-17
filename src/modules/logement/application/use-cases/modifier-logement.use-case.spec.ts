@@ -1,6 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
 import { ModifierLogementUseCase } from './modifier-logement.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 
 describe('ModifierLogementUseCase', () => {
   let useCase: ModifierLogementUseCase;
@@ -49,7 +52,11 @@ describe('ModifierLogementUseCase', () => {
     mockRepo.update.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ id: 'logement-uuid-A', tenantId: 'tenant-B', data: { nom: 'Hack' } }),
+      useCase.execute({
+        id: 'logement-uuid-A',
+        tenantId: 'tenant-B',
+        data: { nom: 'Hack' },
+      }),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -58,7 +65,11 @@ describe('ModifierLogementUseCase', () => {
     mockRepo.update.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ id: 'uuid-inexistant', tenantId: 'tenant-A', data: {} }),
+      useCase.execute({
+        id: 'uuid-inexistant',
+        tenantId: 'tenant-A',
+        data: {},
+      }),
     ).rejects.toThrow(NotFoundException);
   });
 });

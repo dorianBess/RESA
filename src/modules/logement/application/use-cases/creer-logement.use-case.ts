@@ -16,7 +16,8 @@ export interface CreerLogementCommand {
 @Injectable()
 export class CreerLogementUseCase {
   constructor(
-    @Inject(LOGEMENT_REPOSITORY) private readonly logementRepository: ILogementRepository,
+    @Inject(LOGEMENT_REPOSITORY)
+    private readonly logementRepository: ILogementRepository,
   ) {}
 
   async execute(command: CreerLogementCommand): Promise<LogementDomain> {
