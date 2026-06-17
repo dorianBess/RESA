@@ -7,9 +7,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, Dev]
+    branches: [main, Dev, EC03-CICD]
   pull_request:
-    branches: [main, Dev]
+    branches: [main, Dev, EC03-CICD]
 
 env:
   REGISTRY: ghcr.io
