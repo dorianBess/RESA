@@ -14,6 +14,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Force Node.js 24 dans les actions GitHub (Node 20 déprécié depuis juin 2026)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # ───────────────────────────────────────────────────────────────────────────────
 # STAGE 1 — BUILD
@@ -35,6 +37,10 @@ jobs:
     steps:
       - name: Checkout du code source
         uses: actions/checkout@v4
+
+      # GHCR exige des noms d'image en minuscules — github.repository peut contenir des majuscules
+      - name: Normaliser le nom de l'image en minuscules
+        run: echo "IMAGE_NAME=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # Activation de Docker Buildx pour le cache multicouche
       - name: Configurer Docker Buildx
@@ -113,6 +119,10 @@ jobs:
     steps:
       - name: Checkout du code source
         uses: actions/checkout@v4
+
+      # GHCR exige des noms d'image en minuscules
+      - name: Normaliser le nom de l'image en minuscules
+        run: echo "IMAGE_NAME=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # Authentification GHCR pour pouvoir pull l'image builder
       - name: Connexion au GitHub Container Registry (GHCR)
@@ -260,6 +270,10 @@ jobs:
           --health-retries 5
 
     steps:
+      # GHCR exige des noms d'image en minuscules
+      - name: Normaliser le nom de l'image en minuscules
+        run: echo "IMAGE_NAME=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       # Authentification GHCR pour pouvoir pull l'image de production
       - name: Connexion au GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
