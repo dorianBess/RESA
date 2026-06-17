@@ -10,6 +10,8 @@ export class NotificationService implements INotificationService {
     dateFin: Date,
   ): Promise<void> {
     // stub — implement with AWS SES in production
-    console.log(`[ALERT] Conflit iCal pour ${logementNom}: ${dateDebut} - ${dateFin} → ${tenantEmail}`);
+    console.log(
+      `[ALERT] Conflit iCal pour ${logementNom}: ${dateDebut} - ${dateFin} → ${tenantEmail}`,
+    );
   }
 }

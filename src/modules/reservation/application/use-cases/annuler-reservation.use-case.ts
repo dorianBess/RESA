@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import {
   RESERVATION_REPOSITORY,
   IReservationRepository,
@@ -9,7 +14,8 @@ import {
 @Injectable()
 export class AnnulerReservationUseCase {
   constructor(
-    @Inject(RESERVATION_REPOSITORY) private readonly reservationRepository: IReservationRepository,
+    @Inject(RESERVATION_REPOSITORY)
+    private readonly reservationRepository: IReservationRepository,
   ) {}
 
   async execute(id: string, tenantId: string): Promise<ReservationDomain> {
@@ -20,7 +26,11 @@ export class AnnulerReservationUseCase {
       throw new ConflictException('Cette réservation est déjà annulée');
     }
 
-    await this.reservationRepository.updateStatut(id, tenantId, StatutReservation.ANNULEE);
+    await this.reservationRepository.updateStatut(
+      id,
+      tenantId,
+      StatutReservation.ANNULEE,
+    );
     return { ...reservation, statut: StatutReservation.ANNULEE };
   }
 }

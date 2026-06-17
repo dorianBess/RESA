@@ -7,7 +7,10 @@ describe('ReordonnerPhotosUseCase', () => {
 
   beforeEach(() => {
     mockPhotoRepo = {
-      findByLogement: jest.fn(), save: jest.fn(), delete: jest.fn(), updateOrdre: jest.fn(),
+      findByLogement: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
+      updateOrdre: jest.fn(),
     };
     useCase = new ReordonnerPhotosUseCase(mockPhotoRepo);
   });

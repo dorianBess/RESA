@@ -1,5 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { StatutPaiement, TypePaiement } from '../../domain/ports/paiement.repository.port';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import {
+  StatutPaiement,
+  TypePaiement,
+} from '../../domain/ports/paiement.repository.port';
 
 @Entity('paiements')
 export class PaiementEntity {
@@ -15,7 +24,11 @@ export class PaiementEntity {
   @Column({ type: 'enum', enum: TypePaiement })
   type: TypePaiement;
 
-  @Column({ type: 'enum', enum: StatutPaiement, default: StatutPaiement.EN_ATTENTE })
+  @Column({
+    type: 'enum',
+    enum: StatutPaiement,
+    default: StatutPaiement.EN_ATTENTE,
+  })
   statut: StatutPaiement;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

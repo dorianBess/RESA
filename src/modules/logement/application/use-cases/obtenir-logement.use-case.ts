@@ -1,10 +1,15 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { LOGEMENT_REPOSITORY, ILogementRepository, LogementDomain } from '../../domain/ports/logement.repository.port';
+import {
+  LOGEMENT_REPOSITORY,
+  ILogementRepository,
+  LogementDomain,
+} from '../../domain/ports/logement.repository.port';
 
 @Injectable()
 export class ObtenirLogementUseCase {
   constructor(
-    @Inject(LOGEMENT_REPOSITORY) private readonly logementRepository: ILogementRepository,
+    @Inject(LOGEMENT_REPOSITORY)
+    private readonly logementRepository: ILogementRepository,
   ) {}
 
   async execute(id: string, tenantId: string): Promise<LogementDomain> {

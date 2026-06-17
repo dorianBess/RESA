@@ -18,6 +18,9 @@ export interface WidgetConfigDomain {
 
 export interface IWidgetRepository {
   findByTenantId(tenantId: string): Promise<WidgetConfigDomain | null>;
-  upsert(tenantId: string, config: Partial<WidgetConfig>): Promise<WidgetConfigDomain>;
+  upsert(
+    tenantId: string,
+    config: Partial<WidgetConfig>,
+  ): Promise<WidgetConfigDomain>;
   regenererToken(tenantId: string): Promise<WidgetConfigDomain>;
 }

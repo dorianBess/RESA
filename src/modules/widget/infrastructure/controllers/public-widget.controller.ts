@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query, NotFoundException, Inject } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  NotFoundException,
+  Inject,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TenantEntity } from '@modules/tenant/infrastructure/entities/tenant.entity';
@@ -7,7 +16,10 @@ import { TarifBaseEntity } from '@modules/logement/infrastructure/entities/tarif
 import { BlocageDatesEntity } from '@modules/logement/infrastructure/entities/blocage-dates.entity';
 import { StatutLogement } from '@modules/logement/domain/ports/logement.repository.port';
 import { CreerReservationUseCase } from '@modules/reservation/application/use-cases/creer-reservation.use-case';
-import { IReservationRepository, RESERVATION_REPOSITORY } from '@modules/reservation/domain/ports/reservation.repository.port';
+import {
+  IReservationRepository,
+  RESERVATION_REPOSITORY,
+} from '@modules/reservation/domain/ports/reservation.repository.port';
 
 @Controller('widget')
 export class PublicWidgetController {
@@ -26,12 +38,16 @@ export class PublicWidgetController {
   ) {}
 
   private toDateStr(d: Date | string): string {
-    return d instanceof Date ? d.toISOString().substring(0, 10) : String(d).substring(0, 10);
+    return d instanceof Date
+      ? d.toISOString().substring(0, 10)
+      : String(d).substring(0, 10);
   }
 
   @Get(':token')
   async getByToken(@Param('token') token: string) {
-    const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
+    const tenant = await this.tenantRepo.findOne({
+      where: { tokenPublicWidget: token },
+    });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
     const config = tenant.widgetConfig ?? {};
@@ -41,7 +57,9 @@ export class PublicWidgetController {
 
     let tarifParNuit = 0;
     if (logement) {
-      const tarif = await this.tarifRepo.findOne({ where: { logementId: logement.id } });
+      const tarif = await this.tarifRepo.findOne({
+        where: { logementId: logement.id },
+      });
       if (tarif) tarifParNuit = Number((tarif as any).prixParNuit ?? 0);
     }
 
@@ -63,7 +81,9 @@ export class PublicWidgetController {
 
   @Get(':token/logements')
   async getLogements(@Param('token') token: string) {
-    const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
+    const tenant = await this.tenantRepo.findOne({
+      where: { tokenPublicWidget: token },
+    });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
     const logements = await this.logementRepo.find({
@@ -72,7 +92,9 @@ export class PublicWidgetController {
 
     return Promise.all(
       logements.map(async (logement) => {
-        const tarif = await this.tarifRepo.findOne({ where: { logementId: logement.id } });
+        const tarif = await this.tarifRepo.findOne({
+          where: { logementId: logement.id },
+        });
         return {
           id: logement.id,
           nom: logement.nom,
@@ -93,17 +115,30 @@ export class PublicWidgetController {
     @Query('dateDebut') dateDebut: string,
     @Query('dateFin') dateFin: string,
   ) {
-    const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
+    const tenant = await this.tenantRepo.findOne({
+      where: { tokenPublicWidget: token },
+    });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
     const debut = new Date(dateDebut);
     const fin = new Date(dateFin);
 
-    const conflict = await this.reservationRepo.existsConflict(logementId, debut, fin);
-    const holdActif = await this.reservationRepo.existsActiveHold(logementId, debut, fin);
+    const conflict = await this.reservationRepo.existsConflict(
+      logementId,
+      debut,
+      fin,
+    );
+    const holdActif = await this.reservationRepo.existsActiveHold(
+      logementId,
+      debut,
+      fin,
+    );
 
     if (conflict || holdActif) {
-      return { disponible: false, motif: 'Ces dates ne sont plus disponibles.' };
+      return {
+        disponible: false,
+        motif: 'Ces dates ne sont plus disponibles.',
+      };
     }
 
     const blocageConflict = await this.blocageRepo
@@ -115,7 +150,10 @@ export class PublicWidgetController {
       .getCount();
 
     if (blocageConflict > 0) {
-      return { disponible: false, motif: "Ces dates sont bloquées par l'hébergeur." };
+      return {
+        disponible: false,
+        motif: "Ces dates sont bloquées par l'hébergeur.",
+      };
     }
 
     return { disponible: true };
@@ -126,15 +164,25 @@ export class PublicWidgetController {
     @Param('token') token: string,
     @Query('logementId') logementId: string,
   ) {
-    const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
+    const tenant = await this.tenantRepo.findOne({
+      where: { tokenPublicWidget: token },
+    });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
-    const reservations = await this.reservationRepo.findByLogement(logementId, tenant.id);
-    const blocages = await this.blocageRepo.find({ where: { logementId, tenantId: tenant.id } });
+    const reservations = await this.reservationRepo.findByLogement(
+      logementId,
+      tenant.id,
+    );
+    const blocages = await this.blocageRepo.find({
+      where: { logementId, tenantId: tenant.id },
+    });
 
     const fromReservations = reservations
       .filter((r) => r.statut !== 'ANNULEE' && r.statut !== 'REMBOURSEE')
-      .map((r) => ({ start: this.toDateStr(r.dateDebut), end: this.toDateStr(r.dateFin) }));
+      .map((r) => ({
+        start: this.toDateStr(r.dateDebut),
+        end: this.toDateStr(r.dateFin),
+      }));
 
     const fromBlocages = blocages.map((b) => ({
       start: this.toDateStr(b.dateDebut),
@@ -146,7 +194,9 @@ export class PublicWidgetController {
 
   @Post(':token/reservations')
   async createReservation(@Param('token') token: string, @Body() body: any) {
-    const tenant = await this.tenantRepo.findOne({ where: { tokenPublicWidget: token } });
+    const tenant = await this.tenantRepo.findOne({
+      where: { tokenPublicWidget: token },
+    });
     if (!tenant) throw new NotFoundException('Widget introuvable');
 
     const logement = await this.logementRepo.findOne({
@@ -154,7 +204,9 @@ export class PublicWidgetController {
     });
     if (!logement) throw new NotFoundException('Logement introuvable');
 
-    const tarif = await this.tarifRepo.findOne({ where: { logementId: logement.id } });
+    const tarif = await this.tarifRepo.findOne({
+      where: { logementId: logement.id },
+    });
     const prixParNuit = tarif ? Number((tarif as any).prixParNuit ?? 0) : 0;
 
     const result = await this.creerReservation.execute({
@@ -168,7 +220,12 @@ export class PublicWidgetController {
       voyageurEmail: body.voyageurEmail,
       voyageurTelephone: body.voyageurTelephone,
       notes: body.notes,
-      logement: { id: logement.id, tenantId: tenant.id, capacite: logement.capacite, prixParNuit },
+      logement: {
+        id: logement.id,
+        tenantId: tenant.id,
+        capacite: logement.capacite,
+        prixParNuit,
+      },
     });
 
     return {

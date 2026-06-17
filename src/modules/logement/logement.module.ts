@@ -22,12 +22,19 @@ import { IcalFetcherService } from './infrastructure/services/ical-fetcher.servi
 import { NotificationService } from './infrastructure/services/notification.service';
 
 import { LOGEMENT_REPOSITORY } from './domain/ports/logement.repository.port';
-import { PHOTO_REPOSITORY, STORAGE_SERVICE } from './domain/ports/photo.repository.port';
+import {
+  PHOTO_REPOSITORY,
+  STORAGE_SERVICE,
+} from './domain/ports/photo.repository.port';
 import { TARIF_REPOSITORY } from './domain/ports/tarif.repository.port';
 import { BLOCAGE_REPOSITORY } from './domain/ports/blocage.repository.port';
 import { CONFIG_ACOMPTE_REPOSITORY } from './domain/ports/config-acompte.repository.port';
 import { DISPONIBILITE_REPOSITORY } from './domain/ports/disponibilite.repository.port';
-import { ICAL_REPOSITORY, ICAL_FETCHER, NOTIFICATION_SERVICE } from './domain/ports/ical.repository.port';
+import {
+  ICAL_REPOSITORY,
+  ICAL_FETCHER,
+  NOTIFICATION_SERVICE,
+} from './domain/ports/ical.repository.port';
 
 import { ListerLogementsUseCase } from './application/use-cases/lister-logements.use-case';
 import { ObtenirLogementUseCase } from './application/use-cases/obtenir-logement.use-case';
@@ -55,19 +62,37 @@ import { ReservationHoldEntity } from '@modules/reservation/infrastructure/entit
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      LogementEntity, PhotoEntity, TarifBaseEntity, TarifSaisonnierEntity,
-      BlocageDatesEntity, ConfigAcompteEntity, ReservationEntity, ReservationHoldEntity,
+      LogementEntity,
+      PhotoEntity,
+      TarifBaseEntity,
+      TarifSaisonnierEntity,
+      BlocageDatesEntity,
+      ConfigAcompteEntity,
+      ReservationEntity,
+      ReservationHoldEntity,
     ]),
     ReservationModule,
   ],
   controllers: [LogementController],
   providers: [
-    ListerLogementsUseCase, ObtenirLogementUseCase, CreerLogementUseCase,
-    ModifierLogementUseCase, ArchiverLogementUseCase, VerifierDisponibiliteCompletUseCase,
-    UploaderPhotoUseCase, SupprimerPhotoUseCase, ReordonnerPhotosUseCase,
-    UpsertTarifBaseUseCase, CreerTarifSaisonnierUseCase, ModifierTarifSaisonnierUseCase,
-    SupprimerTarifSaisonnierUseCase, CreerBlocageUseCase, SupprimerBlocageUseCase,
-    UpsertConfigAcompteUseCase, ConfigurerIcalUseCase, SynchroniserIcalUseCase,
+    ListerLogementsUseCase,
+    ObtenirLogementUseCase,
+    CreerLogementUseCase,
+    ModifierLogementUseCase,
+    ArchiverLogementUseCase,
+    VerifierDisponibiliteCompletUseCase,
+    UploaderPhotoUseCase,
+    SupprimerPhotoUseCase,
+    ReordonnerPhotosUseCase,
+    UpsertTarifBaseUseCase,
+    CreerTarifSaisonnierUseCase,
+    ModifierTarifSaisonnierUseCase,
+    SupprimerTarifSaisonnierUseCase,
+    CreerBlocageUseCase,
+    SupprimerBlocageUseCase,
+    UpsertConfigAcompteUseCase,
+    ConfigurerIcalUseCase,
+    SynchroniserIcalUseCase,
     { provide: LOGEMENT_REPOSITORY, useClass: LogementRepository },
     { provide: PHOTO_REPOSITORY, useClass: PhotoRepository },
     { provide: STORAGE_SERVICE, useClass: StorageService },

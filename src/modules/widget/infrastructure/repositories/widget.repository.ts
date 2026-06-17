@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IWidgetRepository, WidgetConfigDomain, WidgetConfig } from '../../domain/ports/widget.repository.port';
+import {
+  IWidgetRepository,
+  WidgetConfigDomain,
+  WidgetConfig,
+} from '../../domain/ports/widget.repository.port';
 import { TenantEntity } from '@modules/tenant/infrastructure/entities/tenant.entity';
 
 function generateToken(): string {
@@ -25,7 +29,10 @@ export class WidgetRepository implements IWidgetRepository {
     return this.toWidgetDomain(tenant);
   }
 
-  async upsert(tenantId: string, updates: Partial<WidgetConfig>): Promise<WidgetConfigDomain> {
+  async upsert(
+    tenantId: string,
+    updates: Partial<WidgetConfig>,
+  ): Promise<WidgetConfigDomain> {
     const tenant = await this.repo.findOne({ where: { id: tenantId } });
     if (!tenant) throw new Error('Tenant introuvable');
 
@@ -50,7 +57,7 @@ export class WidgetRepository implements IWidgetRepository {
   }
 
   private toWidgetDomain(tenant: TenantEntity): WidgetConfigDomain {
-    const config = tenant.widgetConfig as any ?? {};
+    const config = (tenant.widgetConfig as any) ?? {};
     const token = tenant.tokenPublicWidget ?? '';
     return {
       tenantId: tenant.id,

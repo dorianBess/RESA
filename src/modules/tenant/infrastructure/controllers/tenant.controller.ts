@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
 import { ListerTenantsUseCase } from '../../application/use-cases/lister-tenants.use-case';
 import { ObtenirTenantUseCase } from '../../application/use-cases/obtenir-tenant.use-case';

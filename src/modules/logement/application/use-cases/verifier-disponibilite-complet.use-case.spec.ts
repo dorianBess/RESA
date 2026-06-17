@@ -1,6 +1,9 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { VerifierDisponibiliteCompletUseCase } from './verifier-disponibilite-complet.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 import { IBlocageRepository } from '../../domain/ports/blocage.repository.port';
 import { IDisponibiliteRepository } from '../../domain/ports/disponibilite.repository.port';
 import { ITarifRepository } from '../../domain/ports/tarif.repository.port';
@@ -15,48 +18,83 @@ describe('VerifierDisponibiliteCompletUseCase', () => {
   let mockAcompte: jest.Mocked<IConfigAcompteRepository>;
 
   const logement = {
-    id: 'log-uuid', tenantId: 'tenant-A', nom: 'Gîte',
-    capacite: 4, statut: StatutLogement.ACTIF,
+    id: 'log-uuid',
+    tenantId: 'tenant-A',
+    nom: 'Gîte',
+    capacite: 4,
+    statut: StatutLogement.ACTIF,
   };
 
   const baseCmd = {
-    logementId: 'log-uuid', tenantId: 'tenant-A',
-    dateDebut: new Date('2025-07-10'), dateFin: new Date('2025-07-17'),
+    logementId: 'log-uuid',
+    tenantId: 'tenant-A',
+    dateDebut: new Date('2025-07-10'),
+    dateFin: new Date('2025-07-17'),
     nbPersonnes: 4,
   };
 
   beforeEach(() => {
     mockLogement = {
-      findAll: jest.fn(), findById: jest.fn(), create: jest.fn(),
-      update: jest.fn(), hasReservationsFutures: jest.fn(), findAllWithoutTenantFilter: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      hasReservationsFutures: jest.fn(),
+      findAllWithoutTenantFilter: jest.fn(),
     };
     mockBlocage = {
-      findByLogement: jest.fn(), findById: jest.fn(), existsConflictWithReservation: jest.fn(),
-      existsConflict: jest.fn(), create: jest.fn(), delete: jest.fn(), findByDateRange: jest.fn(),
+      findByLogement: jest.fn(),
+      findById: jest.fn(),
+      existsConflictWithReservation: jest.fn(),
+      existsConflict: jest.fn(),
+      create: jest.fn(),
+      delete: jest.fn(),
+      findByDateRange: jest.fn(),
     };
     mockDispo = { existsConflict: jest.fn(), existsActiveHold: jest.fn() };
     mockTarif = {
-      findBase: jest.fn(), upsertBase: jest.fn(), findSaisonniers: jest.fn(),
-      createSaisonnier: jest.fn(), updateSaisonnier: jest.fn(), deleteSaisonnier: jest.fn(),
+      findBase: jest.fn(),
+      upsertBase: jest.fn(),
+      findSaisonniers: jest.fn(),
+      createSaisonnier: jest.fn(),
+      updateSaisonnier: jest.fn(),
+      deleteSaisonnier: jest.fn(),
       findApplicable: jest.fn(),
     };
     mockAcompte = { findByLogement: jest.fn(), upsert: jest.fn() };
     useCase = new VerifierDisponibiliteCompletUseCase(
-      mockLogement, mockBlocage, mockDispo, mockTarif, mockAcompte,
+      mockLogement,
+      mockBlocage,
+      mockDispo,
+      mockTarif,
+      mockAcompte,
     );
   });
 
   afterEach(() => jest.clearAllMocks());
 
-  function setupDisponible(prixParNuit = 120, acompte: { actif: boolean; pourcentage?: number } = { actif: false }) {
+  function setupDisponible(
+    prixParNuit = 120,
+    acompte: { actif: boolean; pourcentage?: number } = { actif: false },
+  ) {
     mockLogement.findById.mockResolvedValue(logement);
     mockDispo.existsConflict.mockResolvedValue(false);
     mockBlocage.existsConflict.mockResolvedValue(false);
     mockTarif.findApplicable.mockResolvedValue(null);
-    mockTarif.findBase.mockResolvedValue({ id: 't', logementId: 'log-uuid', prixParNuit });
+    mockTarif.findBase.mockResolvedValue({
+      id: 't',
+      logementId: 'log-uuid',
+      prixParNuit,
+    });
     mockAcompte.findByLogement.mockResolvedValue(
       acompte.actif
-        ? { id: 'ca', logementId: 'log-uuid', actif: true, pourcentage: acompte.pourcentage ?? 30, delaiSoldeJours: 30 }
+        ? {
+            id: 'ca',
+            logementId: 'log-uuid',
+            actif: true,
+            pourcentage: acompte.pourcentage ?? 30,
+            delaiSoldeJours: 30,
+          }
         : null,
     );
   }
@@ -95,7 +133,9 @@ describe('VerifierDisponibiliteCompletUseCase', () => {
 
     await expect(
       useCase.execute({ ...baseCmd, nbPersonnes: 6 }),
-    ).rejects.toThrow(new ConflictException('Capacité insuffisante pour 6 personnes'));
+    ).rejects.toThrow(
+      new ConflictException('Capacité insuffisante pour 6 personnes'),
+    );
   });
 
   // TEST-DISPO-05 — Tarif saisonnier appliqué (180€/nuit)
@@ -104,10 +144,19 @@ describe('VerifierDisponibiliteCompletUseCase', () => {
     mockDispo.existsConflict.mockResolvedValue(false);
     mockBlocage.existsConflict.mockResolvedValue(false);
     mockTarif.findApplicable.mockResolvedValue({
-      id: 'ts', logementId: 'log-uuid', nom: 'Été', prixParNuit: 180,
-      dateDebut: new Date('2025-07-01'), dateFin: new Date('2025-08-31'), priorite: 2,
+      id: 'ts',
+      logementId: 'log-uuid',
+      nom: 'Été',
+      prixParNuit: 180,
+      dateDebut: new Date('2025-07-01'),
+      dateFin: new Date('2025-08-31'),
+      priorite: 2,
     });
-    mockTarif.findBase.mockResolvedValue({ id: 't', logementId: 'log-uuid', prixParNuit: 120 });
+    mockTarif.findBase.mockResolvedValue({
+      id: 't',
+      logementId: 'log-uuid',
+      prixParNuit: 120,
+    });
     mockAcompte.findByLogement.mockResolvedValue(null);
 
     const result = await useCase.execute(baseCmd);
@@ -118,8 +167,16 @@ describe('VerifierDisponibiliteCompletUseCase', () => {
   // TEST-DISPO-06 — Dates invalides
   it('TEST-DISPO-06: lève BadRequestException quand dateFin avant dateDebut', async () => {
     await expect(
-      useCase.execute({ ...baseCmd, dateDebut: new Date('2025-07-17'), dateFin: new Date('2025-07-10') }),
-    ).rejects.toThrow(new BadRequestException('La date de fin doit être postérieure à la date de début'));
+      useCase.execute({
+        ...baseCmd,
+        dateDebut: new Date('2025-07-17'),
+        dateFin: new Date('2025-07-10'),
+      }),
+    ).rejects.toThrow(
+      new BadRequestException(
+        'La date de fin doit être postérieure à la date de début',
+      ),
+    );
   });
 
   // TEST-DISPO-07 — Logement introuvable

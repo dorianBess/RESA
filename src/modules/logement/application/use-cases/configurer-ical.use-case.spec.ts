@@ -19,32 +19,38 @@ describe('ConfigurerIcalUseCase', () => {
 
     await expect(
       useCase.execute({
-        logementId: 'log-uuid', tenantId: 'tenant-A',
+        logementId: 'log-uuid',
+        tenantId: 'tenant-A',
         urlIcalAirbnb: 'https://airbnb.fr/ical/xxx.ics',
       }),
     ).resolves.toBeUndefined();
 
     expect(mockRepo.saveUrls).toHaveBeenCalledWith(
-      'log-uuid', 'tenant-A',
-      expect.objectContaining({ urlIcalAirbnb: 'https://airbnb.fr/ical/xxx.ics' }),
+      'log-uuid',
+      'tenant-A',
+      expect.objectContaining({
+        urlIcalAirbnb: 'https://airbnb.fr/ical/xxx.ics',
+      }),
     );
   });
 
   // TEST-ICAL-02 — URL Airbnb invalide
-  it("TEST-ICAL-02: lève BadRequestException \"Format d'URL invalide\"", async () => {
+  it('TEST-ICAL-02: lève BadRequestException "Format d\'URL invalide"', async () => {
     await expect(
       useCase.execute({
-        logementId: 'log-uuid', tenantId: 'tenant-A',
+        logementId: 'log-uuid',
+        tenantId: 'tenant-A',
         urlIcalAirbnb: 'pas-une-url',
       }),
     ).rejects.toThrow(new BadRequestException("Format d'URL invalide"));
   });
 
   // TEST-ICAL-02B — URL Booking invalide
-  it("TEST-ICAL-02B: lève BadRequestException pour URL Booking invalide", async () => {
+  it('TEST-ICAL-02B: lève BadRequestException pour URL Booking invalide', async () => {
     await expect(
       useCase.execute({
-        logementId: 'log-uuid', tenantId: 'tenant-A',
+        logementId: 'log-uuid',
+        tenantId: 'tenant-A',
         urlIcalBooking: 'pas-une-url',
       }),
     ).rejects.toThrow(new BadRequestException("Format d'URL invalide"));
@@ -56,14 +62,18 @@ describe('ConfigurerIcalUseCase', () => {
 
     await expect(
       useCase.execute({
-        logementId: 'log-uuid', tenantId: 'tenant-A',
+        logementId: 'log-uuid',
+        tenantId: 'tenant-A',
         urlIcalBooking: 'https://booking.com/ical/xxx.ics',
       }),
     ).resolves.toBeUndefined();
 
     expect(mockRepo.saveUrls).toHaveBeenCalledWith(
-      'log-uuid', 'tenant-A',
-      expect.objectContaining({ urlIcalBooking: 'https://booking.com/ical/xxx.ics' }),
+      'log-uuid',
+      'tenant-A',
+      expect.objectContaining({
+        urlIcalBooking: 'https://booking.com/ical/xxx.ics',
+      }),
     );
   });
 });

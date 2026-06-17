@@ -4,7 +4,7 @@ export class CreerTenantDto {
   @IsString({ message: 'La raison sociale est obligatoire' })
   raisonSociale!: string;
 
-  @IsEmail({}, { message: "Le champ email est obligatoire" })
+  @IsEmail({}, { message: 'Le champ email est obligatoire' })
   email!: string;
 
   @IsString()

@@ -1,14 +1,21 @@
 import { NotFoundException } from '@nestjs/common';
 import { ModifierTenantUseCase } from './modifier-tenant.use-case';
-import { ITenantRepository, TenantDomain } from '../../domain/ports/tenant.repository.port';
+import {
+  ITenantRepository,
+  TenantDomain,
+} from '../../domain/ports/tenant.repository.port';
 
 describe('ModifierTenantUseCase', () => {
   let useCase: ModifierTenantUseCase;
   let mockRepo: jest.Mocked<ITenantRepository>;
 
   const tenantExistant: TenantDomain = {
-    id: 'tenant-uuid', raisonSociale: 'Gîte Test', email: 'test@gite.fr',
-    abonnementStatut: 'ACTIF', abonnementDebut: null, abonnementFin: null,
+    id: 'tenant-uuid',
+    raisonSociale: 'Gîte Test',
+    email: 'test@gite.fr',
+    abonnementStatut: 'ACTIF',
+    abonnementDebut: null,
+    abonnementFin: null,
   };
 
   beforeEach(() => {
@@ -30,10 +37,14 @@ describe('ModifierTenantUseCase', () => {
     const tenantMis = { ...tenantExistant, raisonSociale: 'Nouveau Gîte' };
     mockRepo.update.mockResolvedValue(tenantMis);
 
-    const result = await useCase.execute('tenant-uuid', { raisonSociale: 'Nouveau Gîte' });
+    const result = await useCase.execute('tenant-uuid', {
+      raisonSociale: 'Nouveau Gîte',
+    });
 
     expect(result.raisonSociale).toBe('Nouveau Gîte');
-    expect(mockRepo.update).toHaveBeenCalledWith('tenant-uuid', { raisonSociale: 'Nouveau Gîte' });
+    expect(mockRepo.update).toHaveBeenCalledWith('tenant-uuid', {
+      raisonSociale: 'Nouveau Gîte',
+    });
   });
 
   // TEST-TENANT-MOD-02 — Tenant introuvable
@@ -46,11 +57,13 @@ describe('ModifierTenantUseCase', () => {
   });
 
   // TEST-TENANT-MOD-03 — Modification de l'email
-  it('TEST-TENANT-MOD-03: modifie l\'email du tenant', async () => {
+  it("TEST-TENANT-MOD-03: modifie l'email du tenant", async () => {
     const tenantMis = { ...tenantExistant, email: 'nouveau@gite.fr' };
     mockRepo.update.mockResolvedValue(tenantMis);
 
-    const result = await useCase.execute('tenant-uuid', { email: 'nouveau@gite.fr' });
+    const result = await useCase.execute('tenant-uuid', {
+      email: 'nouveau@gite.fr',
+    });
 
     expect(result.email).toBe('nouveau@gite.fr');
   });

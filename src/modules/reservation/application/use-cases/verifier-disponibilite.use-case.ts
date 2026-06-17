@@ -29,13 +29,15 @@ export class VerifierDisponibiliteUseCase {
     private readonly reservationRepository: IReservationRepository,
   ) {}
 
-  async execute(command: VerifierDisponibiliteCommand): Promise<DisponibiliteResult> {
-    const { logementId, tenantId, dateDebut, dateFin } = command;
+  async execute(
+    command: VerifierDisponibiliteCommand,
+  ): Promise<DisponibiliteResult> {
+    const { logementId, dateDebut, dateFin } = command;
 
     // Règle métier 1 : la date de fin doit être après la date de début
     if (dateFin <= dateDebut) {
       throw new BadRequestException(
-        'La date de départ doit être postérieure à la date d\'arrivée',
+        "La date de départ doit être postérieure à la date d'arrivée",
       );
     }
 
@@ -44,7 +46,7 @@ export class VerifierDisponibiliteUseCase {
       (dateFin.getTime() - dateDebut.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (nbNuits < 1) {
-      throw new BadRequestException('La durée minimale de séjour est d\'1 nuit');
+      throw new BadRequestException("La durée minimale de séjour est d'1 nuit");
     }
 
     // Règle métier 3 : vérifier l'absence de conflit (réservation ou blocage)
@@ -55,7 +57,10 @@ export class VerifierDisponibiliteUseCase {
     );
 
     if (conflit) {
-      return { disponible: false, motif: 'Ces dates sont déjà réservées ou bloquées' };
+      return {
+        disponible: false,
+        motif: 'Ces dates sont déjà réservées ou bloquées',
+      };
     }
 
     // Règle métier 4 : vérifier l'absence de hold actif

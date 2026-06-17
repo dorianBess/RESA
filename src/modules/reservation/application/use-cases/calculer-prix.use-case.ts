@@ -22,10 +22,9 @@ export class CalculerPrixUseCase {
       (dateFin.getTime() - dateDebut.getTime()) / (1000 * 60 * 60 * 24),
     );
     const montantTotal = nbNuits * prixParNuit;
-    const montantAcompte =
-      acompteConfig?.actif
-        ? Math.round(montantTotal * acompteConfig.pourcentage) / 100
-        : null;
+    const montantAcompte = acompteConfig?.actif
+      ? Math.round(montantTotal * acompteConfig.pourcentage) / 100
+      : null;
     return { nbNuits, montantTotal, montantAcompte };
   }
 }

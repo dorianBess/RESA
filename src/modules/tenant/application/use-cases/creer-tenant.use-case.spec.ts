@@ -72,6 +72,8 @@ describe('CreerTenantUseCase', () => {
         email: '',
         motDePasse: 'secret',
       }),
-    ).rejects.toThrow(new BadRequestException('Le champ email est obligatoire'));
+    ).rejects.toThrow(
+      new BadRequestException('Le champ email est obligatoire'),
+    );
   });
 });

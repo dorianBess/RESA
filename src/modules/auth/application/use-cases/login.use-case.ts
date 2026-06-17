@@ -27,7 +27,11 @@ export class LoginUseCase {
     if (!isValid) {
       throw new UnauthorizedException('Identifiants invalides');
     }
-    const payload = { sub: tenant.id, email: tenant.email, tenantId: tenant.id };
+    const payload = {
+      sub: tenant.id,
+      email: tenant.email,
+      tenantId: tenant.id,
+    };
     const accessToken = this.jwtService.sign(payload);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     return { accessToken, expiresAt };

@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IAuthRepository, ITenantCredentials } from '../../domain/ports/auth.repository.port';
-import { TenantEntity, StatutAbonnement } from '@modules/tenant/infrastructure/entities/tenant.entity';
+import {
+  IAuthRepository,
+  ITenantCredentials,
+} from '../../domain/ports/auth.repository.port';
+import {
+  TenantEntity,
+  StatutAbonnement,
+} from '@modules/tenant/infrastructure/entities/tenant.entity';
 
 @Injectable()
 export class AuthRepository implements IAuthRepository {

@@ -1,6 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { CreerLogementUseCase } from './creer-logement.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 
 describe('CreerLogementUseCase', () => {
   let useCase: CreerLogementUseCase;
@@ -41,7 +44,10 @@ describe('CreerLogementUseCase', () => {
     expect(result.statut).toBe(StatutLogement.ACTIF);
     expect(result.tenantId).toBe('tenant-uuid-001');
     expect(mockRepo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ nom: 'Gîte Les Lavandes', statut: StatutLogement.ACTIF }),
+      expect.objectContaining({
+        nom: 'Gîte Les Lavandes',
+        statut: StatutLogement.ACTIF,
+      }),
     );
   });
 
@@ -49,7 +55,9 @@ describe('CreerLogementUseCase', () => {
   it('TEST-LOGEMENT-02: lève BadRequestException "La capacité doit être supérieure à 0"', async () => {
     await expect(
       useCase.execute({ tenantId: 'tenant-uuid', nom: 'Test', capacite: -1 }),
-    ).rejects.toThrow(new BadRequestException('La capacité doit être supérieure à 0'));
+    ).rejects.toThrow(
+      new BadRequestException('La capacité doit être supérieure à 0'),
+    );
   });
 
   // TEST-LOGEMENT-03 — Nom manquant

@@ -1,5 +1,8 @@
 import { ListerLogementsUseCase } from './lister-logements.use-case';
-import { ILogementRepository, StatutLogement } from '../../domain/ports/logement.repository.port';
+import {
+  ILogementRepository,
+  StatutLogement,
+} from '../../domain/ports/logement.repository.port';
 
 describe('ListerLogementsUseCase', () => {
   let useCase: ListerLogementsUseCase;
@@ -7,12 +10,18 @@ describe('ListerLogementsUseCase', () => {
 
   const logements = [
     {
-      id: 'log-1', tenantId: 'tenant-A', nom: 'Gîte des Pins',
-      capacite: 4, statut: StatutLogement.ACTIF,
+      id: 'log-1',
+      tenantId: 'tenant-A',
+      nom: 'Gîte des Pins',
+      capacite: 4,
+      statut: StatutLogement.ACTIF,
     },
     {
-      id: 'log-2', tenantId: 'tenant-A', nom: 'Chalet du Lac',
-      capacite: 6, statut: StatutLogement.ACTIF,
+      id: 'log-2',
+      tenantId: 'tenant-A',
+      nom: 'Chalet du Lac',
+      capacite: 6,
+      statut: StatutLogement.ACTIF,
     },
   ];
 

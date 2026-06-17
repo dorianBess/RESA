@@ -1,4 +1,9 @@
-import { Injectable, Inject, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import {
   TENANT_REPOSITORY,
@@ -15,7 +20,8 @@ export interface CreerTenantCommand {
 @Injectable()
 export class CreerTenantUseCase {
   constructor(
-    @Inject(TENANT_REPOSITORY) private readonly tenantRepository: ITenantRepository,
+    @Inject(TENANT_REPOSITORY)
+    private readonly tenantRepository: ITenantRepository,
   ) {}
 
   async execute(command: CreerTenantCommand): Promise<TenantDomain> {

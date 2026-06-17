@@ -1,4 +1,6 @@
-export const RESERVATION_PAIEMENT_REPOSITORY = Symbol('RESERVATION_PAIEMENT_REPOSITORY');
+export const RESERVATION_PAIEMENT_REPOSITORY = Symbol(
+  'RESERVATION_PAIEMENT_REPOSITORY',
+);
 
 export interface ReservationForPaiement {
   id: string;
@@ -10,6 +12,8 @@ export interface ReservationForPaiement {
 }
 
 export interface IReservationPaiementRepository {
-  findByPaymentIntentId(paymentIntentId: string): Promise<ReservationForPaiement | null>;
+  findByPaymentIntentId(
+    paymentIntentId: string,
+  ): Promise<ReservationForPaiement | null>;
   updateStatut(id: string, statut: string): Promise<void>;
 }

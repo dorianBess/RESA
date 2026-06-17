@@ -1,6 +1,9 @@
 import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
-import { CurrentTenant, TenantPayload } from '@shared/decorators/current-tenant.decorator';
+import {
+  CurrentTenant,
+  TenantPayload,
+} from '@shared/decorators/current-tenant.decorator';
 import { ObtenirConfigWidgetUseCase } from '../../application/use-cases/obtenir-config-widget.use-case';
 import { ModifierConfigWidgetUseCase } from '../../application/use-cases/modifier-config-widget.use-case';
 import { RegenerarTokenWidgetUseCase } from '../../application/use-cases/regenerer-token-widget.use-case';

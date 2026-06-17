@@ -13,13 +13,25 @@ export const RESERVATION_REPOSITORY = Symbol('RESERVATION_REPOSITORY');
 
 export interface IReservationRepository {
   findById(id: string, tenantId: string): Promise<ReservationDomain | null>;
-  findByLogement(logementId: string, tenantId: string): Promise<ReservationDomain[]>;
-  existsConflict(logementId: string, debut: Date, fin: Date, excludeId?: string): Promise<boolean>;
+  findByLogement(
+    logementId: string,
+    tenantId: string,
+  ): Promise<ReservationDomain[]>;
+  existsConflict(
+    logementId: string,
+    debut: Date,
+    fin: Date,
+    excludeId?: string,
+  ): Promise<boolean>;
   save(reservation: ReservationDomain): Promise<ReservationDomain>;
   updateStatut(id: string, tenantId: string, statut: string): Promise<void>;
   createHold(hold: ReservationHoldDomain): Promise<ReservationHoldDomain>;
   deleteExpiredHolds(): Promise<void>;
-  existsActiveHold(logementId: string, debut: Date, fin: Date): Promise<boolean>;
+  existsActiveHold(
+    logementId: string,
+    debut: Date,
+    fin: Date,
+  ): Promise<boolean>;
 }
 
 // Types domaine (indépendants de TypeORM)

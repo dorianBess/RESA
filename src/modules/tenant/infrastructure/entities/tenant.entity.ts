@@ -27,7 +27,11 @@ export class TenantEntity {
   @Column()
   motDePasseHash: string;
 
-  @Column({ type: 'enum', enum: StatutAbonnement, default: StatutAbonnement.ESSAI })
+  @Column({
+    type: 'enum',
+    enum: StatutAbonnement,
+    default: StatutAbonnement.ESSAI,
+  })
   abonnementStatut: StatutAbonnement;
 
   @Column({ type: 'timestamp', nullable: true })

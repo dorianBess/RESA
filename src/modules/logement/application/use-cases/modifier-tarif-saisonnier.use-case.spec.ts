@@ -7,15 +7,23 @@ describe('ModifierTarifSaisonnierUseCase', () => {
   let mockRepo: jest.Mocked<ITarifRepository>;
 
   const tarifExistant = {
-    id: 'ts-uuid', logementId: 'log-uuid', nom: 'Été 2025',
-    dateDebut: new Date('2025-07-01'), dateFin: new Date('2025-08-31'),
-    prixParNuit: 180, priorite: 1,
+    id: 'ts-uuid',
+    logementId: 'log-uuid',
+    nom: 'Été 2025',
+    dateDebut: new Date('2025-07-01'),
+    dateFin: new Date('2025-08-31'),
+    prixParNuit: 180,
+    priorite: 1,
   };
 
   beforeEach(() => {
     mockRepo = {
-      findBase: jest.fn(), upsertBase: jest.fn(), findSaisonniers: jest.fn(),
-      createSaisonnier: jest.fn(), updateSaisonnier: jest.fn(), deleteSaisonnier: jest.fn(),
+      findBase: jest.fn(),
+      upsertBase: jest.fn(),
+      findSaisonniers: jest.fn(),
+      createSaisonnier: jest.fn(),
+      updateSaisonnier: jest.fn(),
+      deleteSaisonnier: jest.fn(),
       findApplicable: jest.fn(),
     };
     useCase = new ModifierTarifSaisonnierUseCase(mockRepo);
@@ -28,10 +36,16 @@ describe('ModifierTarifSaisonnierUseCase', () => {
     const tarifMis = { ...tarifExistant, prixParNuit: 200 };
     mockRepo.updateSaisonnier.mockResolvedValue(tarifMis);
 
-    const result = await useCase.execute('ts-uuid', 'tenant-A', { prixParNuit: 200 });
+    const result = await useCase.execute('ts-uuid', 'tenant-A', {
+      prixParNuit: 200,
+    });
 
     expect(result.prixParNuit).toBe(200);
-    expect(mockRepo.updateSaisonnier).toHaveBeenCalledWith('ts-uuid', 'tenant-A', { prixParNuit: 200 });
+    expect(mockRepo.updateSaisonnier).toHaveBeenCalledWith(
+      'ts-uuid',
+      'tenant-A',
+      { prixParNuit: 200 },
+    );
   });
 
   // TEST-TARIF-MOD-02 — Tarif introuvable
@@ -48,7 +62,9 @@ describe('ModifierTarifSaisonnierUseCase', () => {
     const tarifMis = { ...tarifExistant, nom: 'Haute saison 2025' };
     mockRepo.updateSaisonnier.mockResolvedValue(tarifMis);
 
-    const result = await useCase.execute('ts-uuid', 'tenant-A', { nom: 'Haute saison 2025' });
+    const result = await useCase.execute('ts-uuid', 'tenant-A', {
+      nom: 'Haute saison 2025',
+    });
 
     expect(result.nom).toBe('Haute saison 2025');
   });

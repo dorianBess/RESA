@@ -1,16 +1,25 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   PAIEMENT_REPOSITORY,
   IPaiementRepository,
   PaiementDomain,
   StatutPaiement,
 } from '../../domain/ports/paiement.repository.port';
-import { STRIPE_SERVICE, IStripeService } from '@modules/reservation/domain/ports/stripe.service.port';
+import {
+  STRIPE_SERVICE,
+  IStripeService,
+} from '@modules/reservation/domain/ports/stripe.service.port';
 
 @Injectable()
 export class RembourserPaiementUseCase {
   constructor(
-    @Inject(PAIEMENT_REPOSITORY) private readonly paiementRepository: IPaiementRepository,
+    @Inject(PAIEMENT_REPOSITORY)
+    private readonly paiementRepository: IPaiementRepository,
     @Inject(STRIPE_SERVICE) private readonly stripeService: IStripeService,
   ) {}
 

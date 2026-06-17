@@ -15,7 +15,12 @@ import { RegenerarTokenWidgetUseCase } from './application/use-cases/regenerer-t
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TenantEntity, LogementEntity, TarifBaseEntity, BlocageDatesEntity]),
+    TypeOrmModule.forFeature([
+      TenantEntity,
+      LogementEntity,
+      TarifBaseEntity,
+      BlocageDatesEntity,
+    ]),
     ReservationModule,
   ],
   controllers: [WidgetController, PublicWidgetController],

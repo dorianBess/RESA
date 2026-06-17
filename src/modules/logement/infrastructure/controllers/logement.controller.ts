@@ -1,9 +1,22 @@
 import {
-  Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UploadedFile, UseInterceptors,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
-import { CurrentTenant, TenantPayload } from '@shared/decorators/current-tenant.decorator';
+import {
+  CurrentTenant,
+  TenantPayload,
+} from '@shared/decorators/current-tenant.decorator';
 import { ListerLogementsUseCase } from '../../application/use-cases/lister-logements.use-case';
 import { ObtenirLogementUseCase } from '../../application/use-cases/obtenir-logement.use-case';
 import { CreerLogementUseCase } from '../../application/use-cases/creer-logement.use-case';
@@ -22,8 +35,14 @@ import { SupprimerBlocageUseCase } from '../../application/use-cases/supprimer-b
 import { UpsertConfigAcompteUseCase } from '../../application/use-cases/upsert-config-acompte.use-case';
 import { ConfigurerIcalUseCase } from '../../application/use-cases/configurer-ical.use-case';
 import { SynchroniserIcalUseCase } from '../../application/use-cases/synchroniser-ical.use-case';
-import { TARIF_REPOSITORY, ITarifRepository } from '../../domain/ports/tarif.repository.port';
-import { BLOCAGE_REPOSITORY, IBlocageRepository } from '../../domain/ports/blocage.repository.port';
+import {
+  TARIF_REPOSITORY,
+  ITarifRepository,
+} from '../../domain/ports/tarif.repository.port';
+import {
+  BLOCAGE_REPOSITORY,
+  IBlocageRepository,
+} from '../../domain/ports/blocage.repository.port';
 import { Inject } from '@nestjs/common';
 
 @Controller('logements')
@@ -49,7 +68,8 @@ export class LogementController {
     private readonly configurerIcal: ConfigurerIcalUseCase,
     private readonly synchroniserIcal: SynchroniserIcalUseCase,
     @Inject(TARIF_REPOSITORY) private readonly tarifRepo: ITarifRepository,
-    @Inject(BLOCAGE_REPOSITORY) private readonly blocageRepo: IBlocageRepository,
+    @Inject(BLOCAGE_REPOSITORY)
+    private readonly blocageRepo: IBlocageRepository,
   ) {}
 
   @Get()
@@ -68,7 +88,11 @@ export class LogementController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.modifier.execute({ id, tenantId: t.tenantId, data: body });
   }
 
@@ -78,26 +102,44 @@ export class LogementController {
   }
 
   @Get(':id/disponibilites')
-  disponibilites(@Param('id') id: string, @Query() q: any, @CurrentTenant() t: TenantPayload) {
+  disponibilites(
+    @Param('id') id: string,
+    @Query() q: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.verifierDispo.execute({
-      logementId: id, tenantId: t.tenantId,
-      dateDebut: new Date(q.dateDebut), dateFin: new Date(q.dateFin),
+      logementId: id,
+      tenantId: t.tenantId,
+      dateDebut: new Date(q.dateDebut),
+      dateFin: new Date(q.dateFin),
       nbPersonnes: parseInt(q.nbPersonnes, 10),
     });
   }
 
   @Post(':id/photos')
   @UseInterceptors(FileInterceptor('file'))
-  uploadPhoto(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() body: any, @CurrentTenant() t: TenantPayload) {
+  uploadPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.uploaderPhoto.execute({
-      logementId: id, tenantId: t.tenantId,
-      buffer: file.buffer, originalname: file.originalname,
-      mimetype: file.mimetype, size: file.size, ordre: body.ordre,
+      logementId: id,
+      tenantId: t.tenantId,
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      ordre: body.ordre,
     });
   }
 
   @Delete(':id/photos/:photoId')
-  deletePhoto(@Param('photoId') photoId: string, @CurrentTenant() t: TenantPayload) {
+  deletePhoto(
+    @Param('photoId') photoId: string,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.supprimerPhoto.execute(photoId, t.tenantId);
   }
 
@@ -109,69 +151,125 @@ export class LogementController {
   @Get(':id/tarifs')
   async getTarifs(@Param('id') id: string) {
     const [tarifBase, tarifsSaisonniers] = await Promise.all([
-      this.tarifRepo.findBase(id), this.tarifRepo.findSaisonniers(id),
+      this.tarifRepo.findBase(id),
+      this.tarifRepo.findSaisonniers(id),
     ]);
     return { tarifBase, tarifsSaisonniers };
   }
 
   @Put(':id/tarifs/base')
-  upsertTarif(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
-    return this.upsertTarifBase.execute({ logementId: id, tenantId: t.tenantId, ...body });
+  upsertTarif(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
+    return this.upsertTarifBase.execute({
+      logementId: id,
+      tenantId: t.tenantId,
+      ...body,
+    });
   }
 
   @Post(':id/tarifs/saisonniers')
-  createTarifSaisonnier(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
+  createTarifSaisonnier(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.creerTarifSaisonnier.execute({
-      logementId: id, tenantId: t.tenantId,
-      ...body, dateDebut: new Date(body.dateDebut), dateFin: new Date(body.dateFin),
+      logementId: id,
+      tenantId: t.tenantId,
+      ...body,
+      dateDebut: new Date(body.dateDebut),
+      dateFin: new Date(body.dateFin),
     });
   }
 
   @Put(':id/tarifs/saisonniers/:tarifId')
-  updateTarifSaisonnier(@Param('tarifId') tarifId: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
+  updateTarifSaisonnier(
+    @Param('tarifId') tarifId: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.modifierTarifSaisonnier.execute(tarifId, t.tenantId, body);
   }
 
   @Delete(':id/tarifs/saisonniers/:tarifId')
-  deleteTarifSaisonnier(@Param('tarifId') tarifId: string, @CurrentTenant() t: TenantPayload) {
+  deleteTarifSaisonnier(
+    @Param('tarifId') tarifId: string,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.supprimerTarifSaisonnier.execute(tarifId, t.tenantId);
   }
 
   @Get(':id/blocages')
-  getBlocages(@Param('id') id: string, @Query() q: any, @CurrentTenant() t: TenantPayload) {
+  getBlocages(
+    @Param('id') id: string,
+    @Query() q: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.blocageRepo.findByLogement(id, t.tenantId, q);
   }
 
   @Post(':id/blocages')
-  createBlocage(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
+  createBlocage(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.creerBlocage.execute({
-      logementId: id, tenantId: t.tenantId,
-      dateDebut: new Date(body.dateDebut), dateFin: new Date(body.dateFin), motif: body.motif,
+      logementId: id,
+      tenantId: t.tenantId,
+      dateDebut: new Date(body.dateDebut),
+      dateFin: new Date(body.dateFin),
+      motif: body.motif,
     });
   }
 
   @Delete(':id/blocages/:blocageId')
-  deleteBlocage(@Param('blocageId') blocageId: string, @CurrentTenant() t: TenantPayload) {
+  deleteBlocage(
+    @Param('blocageId') blocageId: string,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     return this.supprimerBlocage.execute(blocageId, t.tenantId);
   }
 
   @Get(':id/config-acompte')
-  getConfigAcompte(@Param('id') id: string) {
+  getConfigAcompte(@Param('id') _id: string) {
     return this.upsertAcompte;
   }
 
   @Put(':id/config-acompte')
-  upsertConfigAcompte(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
-    return this.upsertAcompte.execute({ logementId: id, tenantId: t.tenantId, ...body });
+  upsertConfigAcompte(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
+    return this.upsertAcompte.execute({
+      logementId: id,
+      tenantId: t.tenantId,
+      ...body,
+    });
   }
 
   @Put(':id/ical')
-  configurerIcalUrls(@Param('id') id: string, @Body() body: any, @CurrentTenant() t: TenantPayload) {
-    return this.configurerIcal.execute({ logementId: id, tenantId: t.tenantId, ...body });
+  configurerIcalUrls(
+    @Param('id') id: string,
+    @Body() body: any,
+    @CurrentTenant() t: TenantPayload,
+  ) {
+    return this.configurerIcal.execute({
+      logementId: id,
+      tenantId: t.tenantId,
+      ...body,
+    });
   }
 
   @Post(':id/ical/synchroniser')
-  async synchroniser(@Param('id') id: string, @CurrentTenant() t: TenantPayload) {
+  async synchroniser(
+    @Param('id') id: string,
+    @CurrentTenant() t: TenantPayload,
+  ) {
     await this.synchroniserIcal.execute(id, t.tenantId, t.email, id);
     return { message: 'Synchronisation déclenchée' };
   }

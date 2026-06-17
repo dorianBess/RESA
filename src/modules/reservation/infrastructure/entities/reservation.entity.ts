@@ -1,5 +1,9 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { StatutReservation } from '../../domain/ports/reservation.repository.port';
 
@@ -32,7 +36,11 @@ export class ReservationEntity {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   montantAcompte: number | null;
 
-  @Column({ type: 'enum', enum: StatutReservation, default: StatutReservation.EN_ATTENTE })
+  @Column({
+    type: 'enum',
+    enum: StatutReservation,
+    default: StatutReservation.EN_ATTENTE,
+  })
   statut: StatutReservation;
 
   @Column()

@@ -1,5 +1,8 @@
 import { SupprimerPhotoUseCase } from './supprimer-photo.use-case';
-import { IPhotoRepository, IStorageService } from '../../domain/ports/photo.repository.port';
+import {
+  IPhotoRepository,
+  IStorageService,
+} from '../../domain/ports/photo.repository.port';
 
 describe('SupprimerPhotoUseCase', () => {
   let useCase: SupprimerPhotoUseCase;
@@ -26,7 +29,9 @@ describe('SupprimerPhotoUseCase', () => {
   it('TEST-PHOTO-SUP-01: supprime la photo via le repository', async () => {
     mockPhotoRepo.delete.mockResolvedValue();
 
-    await expect(useCase.execute('photo-uuid', 'tenant-A')).resolves.toBeUndefined();
+    await expect(
+      useCase.execute('photo-uuid', 'tenant-A'),
+    ).resolves.toBeUndefined();
     expect(mockPhotoRepo.delete).toHaveBeenCalledWith('photo-uuid', 'tenant-A');
   });
 
