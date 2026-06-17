@@ -181,6 +181,7 @@ jobs:
 #   - ESLint : respect des règles TypeScript/NestJS
 #   - npm audit : vulnérabilités dans les dépendances
 #   - CodeQL : analyse de sécurité statique (DevSecOps C18)
+#   - Trivy : scan de vulnérabilités sur l'image Docker de production
 # ───────────────────────────────────────────────────────────────────────────────
   quality:
     name: "Qualité & Sécurité"
@@ -190,11 +191,24 @@ jobs:
     permissions:
       contents: read
       actions: read
-      security-events: write  # Requis pour publier les résultats CodeQL dans l'onglet Security
+      packages: read           # Requis pour que Trivy puisse pull l'image depuis GHCR
+      security-events: write   # Requis pour publier les résultats CodeQL et Trivy dans l'onglet Security
 
     steps:
       - name: Checkout du code source
         uses: actions/checkout@v4
+
+      # GHCR exige des noms d'image en minuscules
+      - name: Normaliser le nom de l'image en minuscules
+        run: echo "IMAGE_NAME=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      # Authentification GHCR — nécessaire pour que Trivy puisse accéder à l'image privée
+      - name: Connexion au GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configurer Node.js 20
         uses: actions/setup-node@v4
@@ -230,6 +244,24 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: '/language:typescript'
+
+      # Trivy — scan de vulnérabilités CVE sur l'image Docker de production
+      # Échoue si une vulnérabilité CRITICAL ou HIGH est détectée
+      - name: Trivy — Container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+      # Publication des résultats Trivy dans l'onglet Security > Code scanning
+      - name: Upload résultats Trivy
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
 
 # ───────────────────────────────────────────────────────────────────────────────
 # STAGE 4 — DEPLOY (simulation)

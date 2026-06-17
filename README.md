@@ -1,3 +1,5 @@
+![CI/CD Pipeline](https://github.com/dorianBess/RESA/actions/workflows/ci.yml/badge.svg)
+
 # Résa — Plateforme SaaS de réservation de logements touristiques
 
 ## Présentation
